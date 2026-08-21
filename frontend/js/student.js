@@ -1,158 +1,146 @@
 /**
  * student.js - Controlador del Dashboard de Estudiante
- * Gestiona la visualización de cronogramas, inscripciones, estrellas 1-5, comentarios y buzón de sugerencias.
  */
 
-let currentEventData = null;
-let allStudentEvents = [];
-let myEnrolledEvents = [];
-let currentFilterType = 'todos';
+let currentEvent = null;
+let allEvents = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // 1. Proteger ruta: verificar que el usuario esté logueado
   const user = AuthStorage.getUser();
   if (!AuthStorage.isLoggedIn() || !user) {
-    window.location.href = '/';
+    window.location.href = '/login';
     return;
   }
-
-  // Si es admin, redirigir a su panel correspondiente
   if (user.rol === 'admin') {
     window.location.href = '/admin';
     return;
   }
 
-  // 2. Personalizar la bienvenida
-  setupUserInfo(user);
-  setupTabs();
-  setupStarRatings();
-  setupForms();
+  document.getElementById('welcome-title').textContent = `Hola, ${user.nombre}`;
+  document.getElementById('student-badge-name').textContent = user.nombre;
 
-  // 3. Cargar datos iniciales
-  await loadDashboardData();
+  setupTabs();
+  setupStarRating();
+  setupForms();
+  await loadData();
 });
 
-// Configurar información del estudiante en la cabecera
-function setupUserInfo(user) {
-  const welcomeTitle = document.getElementById('welcome-title');
-  const badgeName = document.getElementById('student-name-badge');
-
-  if (welcomeTitle) welcomeTitle.textContent = `¡Hola, ${user.nombre}! 👋`;
-  if (badgeName) badgeName.textContent = `🎓 ${user.nombre}`;
-}
-
-// Configurar pestañas del dashboard
 function setupTabs() {
-  const tabBtns = document.querySelectorAll('.tab-btn');
-  const tabContents = document.querySelectorAll('.tab-content');
+  const btns = document.querySelectorAll('.tab-btn');
+  const panes = document.querySelectorAll('.tab-content');
 
-  tabBtns.forEach(btn => {
+  btns.forEach(btn => {
     btn.addEventListener('click', () => {
-      tabBtns.forEach(b => b.classList.remove('active'));
-      tabContents.forEach(c => c.classList.remove('active'));
+      btns.forEach(b => b.classList.remove('active'));
+      panes.forEach(p => p.classList.remove('active'));
 
       btn.classList.add('active');
-      const targetTabId = btn.dataset.tab;
-      const targetContent = document.getElementById(targetTabId);
-      if (targetContent) targetContent.classList.add('active');
+      const target = document.getElementById(btn.dataset.tab);
+      if (target) target.classList.add('active');
     });
   });
 }
 
-// Cargar todos los eventos e inscripciones del estudiante
-async function loadDashboardData() {
-  await Promise.all([
-    loadAllEvents(),
-    loadMyInscriptions()
-  ]);
+async function loadData() {
+  await Promise.all([loadEvents(), loadMyInscriptions()]);
 }
 
-// Cargar listado general de eventos
-async function loadAllEvents() {
+async function loadEvents() {
   const container = document.getElementById('student-events-grid');
   if (!container) return;
 
   try {
     const events = await API.get('/api/eventos');
-    allStudentEvents = events;
+    allEvents = events;
     renderStudentEvents(events);
   } catch (err) {
-    showToast('Error al cargar la lista de eventos.', 'error');
+    showToast('Error al cargar eventos', 'error');
   }
 }
 
-// Cargar eventos donde el estudiante está inscrito
 async function loadMyInscriptions() {
   try {
     const events = await API.get('/api/inscripciones/mis-eventos');
-    myEnrolledEvents = events;
+    document.getElementById('stat-my-count').textContent = events.length;
+    document.getElementById('badge-my-count').textContent = events.length;
 
-    // Actualizar contadores y badges
-    const statEnrolled = document.getElementById('stat-enrolled-count');
-    const badgeEnrolled = document.getElementById('badge-my-events');
-    if (statEnrolled) statEnrolled.textContent = events.length;
-    if (badgeEnrolled) badgeEnrolled.textContent = events.length;
+    const container = document.getElementById('my-events-grid');
+    if (!container) return;
 
-    renderMyEvents(events);
+    if (events.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <p>No te has inscrito a ningun evento todavia.</p>
+          <button onclick="document.querySelector('[data-tab=tab-cronograma]').click()" class="btn btn-primary btn-sm" style="margin-top: 10px;">Ver Cronograma</button>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = events.map(e => `
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-category">${e.categoria_nombre || 'General'}</span>
+          <span class="badge badge-enrolled">Inscrito</span>
+        </div>
+        <div class="event-card-body">
+          <h3 class="event-card-title">${e.titulo}</h3>
+          <p class="event-card-desc">${e.descripcion || ''}</p>
+          <div class="event-meta">
+            <div><strong>Fecha:</strong> ${e.fecha}</div>
+            <div><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Por confirmar'}</div>
+            <div><strong>Inscrito el:</strong> ${e.fecha_registro}</div>
+          </div>
+        </div>
+        <div class="event-card-footer">
+          <button onclick="cancelEnrollment(${e.id})" class="btn btn-danger btn-sm">Cancelar Inscripcion</button>
+          <button onclick="openStudentModal(${e.id})" class="btn btn-outline btn-sm">Ver / Calificar</button>
+        </div>
+      </div>
+    `).join('');
   } catch (err) {
-    console.error('Error al cargar mis inscripciones:', err);
+    console.error(err);
   }
 }
 
-// Renderizar eventos en la pestaña de Cronograma
 function renderStudentEvents(events) {
   const container = document.getElementById('student-events-grid');
   if (!container) return;
 
   if (events.length === 0) {
-    container.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: white; border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
-        <p style="color: var(--text-muted);">No se encontraron eventos en esta sección.</p>
-      </div>
-    `;
+    container.innerHTML = `<div class="empty-state">No hay eventos disponibles.</div>`;
     return;
   }
 
-  container.innerHTML = events.map(event => {
-    const isPast = event.es_pasado;
-    const statusBadge = isPast 
-      ? '<span class="badge badge-status-past">Finalizado</span>'
-      : '<span class="badge badge-status-upcoming">Próximo</span>';
+  container.innerHTML = events.map(e => {
+    const statusBadge = e.es_pasado
+      ? '<span class="badge badge-past">Finalizado</span>'
+      : '<span class="badge badge-upcoming">Proximo</span>';
 
-    const enrolledBadge = event.esta_inscrito
-      ? '<span class="badge badge-enrolled">✓ Inscrito</span>'
-      : '';
-
-    const categoryBadge = `<span class="badge badge-category">${event.categoria_nombre || 'General'}</span>`;
-
-    const ratingStars = event.calificacion_promedio 
-      ? `<div class="rating-display"><span class="star-icon">★</span> ${event.calificacion_promedio} (${event.total_calificaciones})</div>`
-      : `<div class="rating-display" style="color: var(--text-light); font-weight: normal;">Sin calificaciones</div>`;
+    const enrolledBadge = e.esta_inscrito ? '<span class="badge badge-enrolled">Inscrito</span>' : '';
 
     return `
       <div class="event-card">
         <div class="event-card-header">
-          <div style="display: flex; gap: 6px; align-items: center;">
-            ${categoryBadge}
+          <div>
+            <span class="badge badge-category">${e.categoria_nombre || 'General'}</span>
             ${enrolledBadge}
           </div>
           ${statusBadge}
         </div>
         <div class="event-card-body">
-          <h3 class="event-card-title">${event.titulo}</h3>
-          <p class="event-card-desc">${event.descripcion || 'Sin descripción disponible.'}</p>
-          
+          <h3 class="event-card-title">${e.titulo}</h3>
+          <p class="event-card-desc">${e.descripcion || 'Sin descripcion.'}</p>
           <div class="event-meta">
-            <div class="event-meta-item"><span>📅 <strong>Fecha:</strong> ${formatDate(event.fecha)}</span></div>
-            <div class="event-meta-item"><span>📍 <strong>Lugar:</strong> ${event.ubicacion_nombre || 'Por confirmar'}</span></div>
-            <div class="event-meta-item"><span>👥 <strong>Organiza:</strong> ${event.organizador_nombre || 'Colegio IDETH'}</span></div>
+            <div><strong>Fecha:</strong> ${e.fecha}</div>
+            <div><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Por confirmar'}</div>
+            <div><strong>Organiza:</strong> ${e.organizador_nombre || 'Colegio IDETH'}</div>
           </div>
         </div>
-        
         <div class="event-card-footer">
-          ${ratingStars}
-          <button onclick="openStudentEventModal(${event.id})" class="btn ${event.esta_inscrito ? 'btn-secondary' : 'btn-primary'} btn-sm">
-            ${event.esta_inscrito ? 'Ver / Calificar' : 'Ver e Inscribirme'}
+          <span style="font-size: 0.8rem; color: var(--text-muted);">${e.calificacion_promedio ? `${e.calificacion_promedio}/5` : 'Sin calificar'}</span>
+          <button onclick="openStudentModal(${e.id})" class="btn ${e.esta_inscrito ? 'btn-secondary' : 'btn-primary'} btn-sm">
+            ${e.esta_inscrito ? 'Ver / Calificar' : 'Ver e Inscribirme'}
           </button>
         </div>
       </div>
@@ -160,203 +148,95 @@ function renderStudentEvents(events) {
   }).join('');
 }
 
-// Renderizar eventos en la pestaña de "Mis Inscripciones"
-function renderMyEvents(events) {
-  const container = document.getElementById('my-events-grid');
-  if (!container) return;
-
-  if (events.length === 0) {
-    container.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 50px; background: white; border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
-        <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 10px;">Aún no te has inscrito a ningún evento escolar.</p>
-        <button onclick="document.querySelector('[data-tab=tab-cronograma]').click()" class="btn btn-primary btn-sm">
-          Explorar Cronograma de Eventos
-        </button>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = events.map(event => {
-    return `
-      <div class="event-card" style="border-left: 4px solid var(--accent);">
-        <div class="event-card-header">
-          <span class="badge badge-category">${event.categoria_nombre || 'General'}</span>
-          <span class="badge badge-enrolled">✓ Inscrito</span>
-        </div>
-        <div class="event-card-body">
-          <h3 class="event-card-title">${event.titulo}</h3>
-          <p class="event-card-desc">${event.descripcion || ''}</p>
-          
-          <div class="event-meta">
-            <div class="event-meta-item"><span>📅 <strong>Fecha:</strong> ${formatDate(event.fecha)}</span></div>
-            <div class="event-meta-item"><span>📍 <strong>Lugar:</strong> ${event.ubicacion_nombre || 'Por confirmar'}</span></div>
-            <div class="event-meta-item"><span>🕒 <strong>Inscrito el:</strong> ${event.fecha_registro}</span></div>
-          </div>
-        </div>
-        
-        <div class="event-card-footer">
-          <button onclick="cancelEnrollment(${event.id})" class="btn btn-danger btn-sm">
-            Cancelar Inscripción
-          </button>
-          <button onclick="openStudentEventModal(${event.id})" class="btn btn-primary btn-sm">
-            Ver / Calificar
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// Filtro rápido por tipo (Todos / Próximos / Pasados)
-function filterStudentEvents(type, btnElement) {
+function filterEvents(type, btn) {
   document.querySelectorAll('#tab-cronograma .filter-btn').forEach(b => b.classList.remove('active'));
-  btnElement.classList.add('active');
-  currentFilterType = type;
+  btn.classList.add('active');
 
-  if (type === 'todos') {
-    renderStudentEvents(allStudentEvents);
-  } else if (type === 'proximos') {
-    renderStudentEvents(allStudentEvents.filter(e => !e.es_pasado));
-  } else if (type === 'pasados') {
-    renderStudentEvents(allStudentEvents.filter(e => e.es_pasado));
-  }
+  if (type === 'todos') renderStudentEvents(allEvents);
+  else if (type === 'proximos') renderStudentEvents(allEvents.filter(e => !e.es_pasado));
+  else if (type === 'pasados') renderStudentEvents(allEvents.filter(e => e.es_pasado));
 }
 
-// Abrir modal con detalle completo, estrellas y comentarios
-async function openStudentEventModal(eventId) {
+async function openStudentModal(id) {
   try {
-    const event = await API.get(`/api/eventos/${eventId}`);
-    currentEventData = event;
+    const e = await API.get(`/api/eventos/${id}`);
+    currentEvent = e;
 
-    // Rellenar datos en el modal
-    document.getElementById('modal-event-title').textContent = event.titulo;
-    document.getElementById('modal-category-badge').textContent = event.categoria_nombre || 'General';
-    document.getElementById('modal-event-description').textContent = event.descripcion || 'Sin descripción detallada.';
-    document.getElementById('modal-event-date').textContent = formatDate(event.fecha);
-    document.getElementById('modal-event-location').textContent = event.ubicacion_nombre || 'Por confirmar';
-    document.getElementById('modal-event-organizer').textContent = event.organizador_nombre || 'Colegio IDETH';
-    document.getElementById('modal-event-enrolled-count').textContent = event.total_inscritos || 0;
+    document.getElementById('modal-title').textContent = e.titulo;
+    document.getElementById('modal-cat').textContent = e.categoria_nombre || 'General';
+    document.getElementById('modal-desc').textContent = e.descripcion || 'Sin descripcion.';
+    document.getElementById('modal-date').textContent = e.fecha;
+    document.getElementById('modal-loc').textContent = e.ubicacion_nombre || 'Por confirmar';
+    document.getElementById('modal-org').textContent = e.organizador_nombre || 'Colegio IDETH';
+    document.getElementById('modal-enrolled-count').textContent = e.total_inscritos || 0;
 
-    // Badges de estado e inscripción
-    const statusBadge = document.getElementById('modal-status-badge');
-    if (event.es_pasado) {
-      statusBadge.className = 'badge badge-status-past';
-      statusBadge.textContent = 'Finalizado';
-    } else {
-      statusBadge.className = 'badge badge-status-upcoming';
-      statusBadge.textContent = 'Próximo';
-    }
+    const statusEl = document.getElementById('modal-status');
+    statusEl.className = e.es_pasado ? 'badge badge-past' : 'badge badge-upcoming';
+    statusEl.textContent = e.es_pasado ? 'Finalizado' : 'Proximo';
 
-    const enrolledIndicator = document.getElementById('modal-enrolled-indicator');
-    enrolledIndicator.style.display = event.esta_inscrito ? 'inline-block' : 'none';
+    renderEnrollmentButton(e);
+    updateStarUI(e.mi_calificacion || 0);
+    renderComments(e.comentarios || []);
 
-    // Botón de Inscripción / Desinscripción
-    renderEnrollmentActionButton(event);
-
-    // Pintar estrellas según la calificación previa del estudiante
-    updateStarUI(event.mi_calificacion || 0);
-    const ratingStatusText = document.getElementById('rating-status-text');
-    if (event.mi_calificacion) {
-      ratingStatusText.textContent = `Ya calificaste este evento con ${event.mi_calificacion} estrellas. (Puedes cambiarla haciendo clic)`;
-    } else {
-      ratingStatusText.textContent = 'Haz clic en las estrellas para dejar tu puntuación:';
-    }
-
-    // Renderizar comentarios
-    renderCommentsList(event.comentarios || []);
-
-    const modal = document.getElementById('event-action-modal');
-    modal.classList.add('active');
-
+    openModal('student-event-modal');
   } catch (err) {
-    showToast('No se pudo cargar la información del evento.', 'error');
+    showToast('Error al cargar evento', 'error');
   }
 }
 
-function closeStudentModal() {
-  const modal = document.getElementById('event-action-modal');
-  if (modal) modal.classList.remove('active');
-  currentEventData = null;
-}
-
-// Renderiza el botón de acción de inscripción en el modal
-function renderEnrollmentActionButton(event) {
-  const container = document.getElementById('modal-enrollment-action-container');
-  if (!container) return;
-
-  if (event.esta_inscrito) {
+function renderEnrollmentButton(e) {
+  const container = document.getElementById('modal-enroll-action');
+  if (e.esta_inscrito) {
     container.innerHTML = `
-      <div style="background: var(--accent-light); padding: 14px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-        <span style="color: #065f46; font-weight: 600; font-size: 0.92rem;">
-          ✓ ¡Estás formalmente inscrito en este evento escolar!
-        </span>
-        <button onclick="cancelEnrollment(${event.id})" class="btn btn-danger btn-sm">
-          Cancelar Inscripción
-        </button>
+      <div class="modal-enroll-status">
+        <span>Estas formalmente inscrito a este evento.</span>
+        <button onclick="cancelEnrollment(${e.id})" class="btn btn-danger btn-sm">Cancelar Inscripcion</button>
       </div>
     `;
   } else {
     container.innerHTML = `
-      <button onclick="enrollInEvent(${event.id})" class="btn btn-primary btn-lg btn-block">
-        ✍️ Inscribirme a este Evento
-      </button>
+      <button onclick="enrollInEvent(${e.id})" class="btn btn-primary btn-block">Inscribirme a este Evento</button>
     `;
   }
 }
 
-// Inscribirse a un evento
-async function enrollInEvent(eventId) {
+async function enrollInEvent(id) {
   try {
-    const res = await API.post(`/api/inscripciones/${eventId}`);
+    const res = await API.post(`/api/inscripciones/${id}`);
     showToast(res.mensaje, 'success');
-    await loadDashboardData();
-    // Refrescar modal si está abierto
-    if (currentEventData && currentEventData.id === eventId) {
-      await openStudentEventModal(eventId);
-    }
+    await loadData();
+    await openStudentModal(id);
   } catch (err) {
     showToast(err.message, 'error');
   }
 }
 
-// Cancelar inscripción
-async function cancelEnrollment(eventId) {
-  if (!confirm('¿Estás seguro de cancelar tu inscripción a este evento?')) return;
-
+async function cancelEnrollment(id) {
+  if (!confirm('Deseas cancelar tu inscripcion a este evento?')) return;
   try {
-    const res = await API.delete(`/api/inscripciones/${eventId}`);
+    const res = await API.delete(`/api/inscripciones/${id}`);
     showToast(res.mensaje, 'info');
-    await loadDashboardData();
-    if (currentEventData && currentEventData.id === eventId) {
-      await openStudentEventModal(eventId);
-    }
+    await loadData();
+    closeModal('student-event-modal');
   } catch (err) {
     showToast(err.message, 'error');
   }
 }
 
-// Configurar interacción con las 5 estrellas
-function setupStarRatings() {
+function setupStarRating() {
   const stars = document.querySelectorAll('.star-item');
-  
   stars.forEach(star => {
     star.addEventListener('click', async () => {
-      if (!currentEventData) return;
+      if (!currentEvent) return;
       const score = parseInt(star.dataset.val, 10);
-
       try {
         const res = await API.post('/api/calificaciones', {
-          evento_id: currentEventData.id,
+          evento_id: currentEvent.id,
           puntuacion: score
         });
-
         showToast(res.mensaje, 'success');
         updateStarUI(score);
-        document.getElementById('rating-status-text').textContent = `¡Calificaste con ${score} estrellas!`;
-        
-        // Actualizar datos globales de eventos
-        await loadAllEvents();
+        await loadEvents();
       } catch (err) {
         showToast(err.message, 'error');
       }
@@ -364,99 +244,69 @@ function setupStarRatings() {
   });
 }
 
-function updateStarUI(selectedScore) {
+function updateStarUI(score) {
   const stars = document.querySelectorAll('.star-item');
-  stars.forEach(star => {
-    const val = parseInt(star.dataset.val, 10);
-    if (val <= selectedScore) {
-      star.classList.add('active');
-    } else {
-      star.classList.remove('active');
-    }
+  stars.forEach(s => {
+    const val = parseInt(s.dataset.val, 10);
+    if (val <= score) s.classList.add('active');
+    else s.classList.remove('active');
   });
 }
 
-// Renderizar muro de comentarios
-function renderCommentsList(comments) {
-  const list = document.getElementById('modal-comments-list');
-  if (!list) return;
-
+function renderComments(comments) {
+  const container = document.getElementById('modal-comments-list');
   if (comments.length === 0) {
-    list.innerHTML = `<p style="color: var(--text-muted); font-size: 0.88rem; text-align: center; padding: 12px;">Sé el primero en compartir tu experiencia sobre esta actividad.</p>`;
+    container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.84rem;">Aun no hay comentarios sobre este evento.</p>`;
     return;
   }
-
-  list.innerHTML = comments.map(c => `
-    <div style="background: var(--bg-main); padding: 12px 14px; border-radius: var(--radius-sm); margin-bottom: 8px;">
-      <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 4px;">
-        <strong>🎓 ${c.autor_nombre}</strong>
-        <span>${c.fecha}</span>
+  container.innerHTML = comments.map(c => `
+    <div class="comment-item">
+      <div class="comment-header">
+        <span class="comment-author">${c.autor_nombre}</span>
+        <span class="comment-date">${c.fecha}</span>
       </div>
-      <p style="font-size: 0.92rem; color: var(--text-main);">${c.texto}</p>
+      <p class="comment-text">${c.texto}</p>
     </div>
   `).join('');
 }
 
-// Configurar formularios de comentarios y sugerencias
 function setupForms() {
-  // 1. Formulario de Comentario de Evento
-  const commentForm = document.getElementById('add-comment-form');
-  if (commentForm) {
-    commentForm.addEventListener('submit', async (e) => {
+  const cForm = document.getElementById('form-add-comment');
+  if (cForm) {
+    cForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!currentEventData) return;
-
-      const input = document.getElementById('comment-text');
+      if (!currentEvent) return;
+      const input = document.getElementById('input-comment-text');
       const text = input.value.trim();
       if (!text) return;
 
-      const btn = document.getElementById('btn-submit-comment');
       try {
-        btn.disabled = true;
-        const res = await API.post('/api/comentarios', {
-          evento_id: currentEventData.id,
-          texto: text
-        });
-
-        showToast(res.mensaje, 'success');
+        await API.post('/api/comentarios', { evento_id: currentEvent.id, texto: text });
         input.value = '';
-
-        // Recargar comentarios del evento actual
-        const updatedEvent = await API.get(`/api/eventos/${currentEventData.id}`);
-        currentEventData = updatedEvent;
-        renderCommentsList(updatedEvent.comentarios || []);
-
+        const updated = await API.get(`/api/eventos/${currentEvent.id}`);
+        currentEvent = updated;
+        renderComments(updated.comentarios || []);
+        showToast('Comentario publicado', 'success');
       } catch (err) {
         showToast(err.message, 'error');
-      } finally {
-        btn.disabled = false;
       }
     });
   }
 
-  // 2. Formulario de Buzón de Sugerencias
-  const suggestionForm = document.getElementById('suggestion-form');
-  if (suggestionForm) {
-    suggestionForm.addEventListener('submit', async (e) => {
+  const sForm = document.getElementById('form-suggestion');
+  if (sForm) {
+    sForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const textarea = document.getElementById('suggestion-text');
-      const text = textarea.value.trim();
+      const area = document.getElementById('input-suggestion-text');
+      const text = area.value.trim();
       if (!text) return;
 
-      const btn = document.getElementById('btn-send-suggestion');
       try {
-        btn.disabled = true;
-        btn.textContent = 'Enviando...';
-
         const res = await API.post('/api/sugerencias', { texto: text });
+        area.value = '';
         showToast(res.mensaje, 'success');
-        textarea.value = '';
-
       } catch (err) {
         showToast(err.message, 'error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Enviar Sugerencia';
       }
     });
   }
