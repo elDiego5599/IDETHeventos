@@ -175,7 +175,17 @@ async function openStudentModal(id) {
     statusEl.textContent = e.es_pasado ? 'Finalizado' : 'Proximo';
 
     renderEnrollmentButton(e);
-    updateStarUI(e.mi_calificacion || 0);
+
+    const ratingBox = document.getElementById('star-rating-box');
+    const ratingHint = document.getElementById('star-rating-hint');
+    if (e.es_pasado) {
+      ratingBox.style.display = 'block';
+      updateStarUI(e.mi_calificacion || 0);
+      ratingHint.textContent = 'Haz clic en una estrella para calificar (1 a 5):';
+    } else {
+      ratingBox.style.display = 'none';
+    }
+
     renderComments(e.comentarios || []);
 
     openModal('student-event-modal');
@@ -227,7 +237,7 @@ function setupStarRating() {
   const stars = document.querySelectorAll('.star-item');
   stars.forEach(star => {
     star.addEventListener('click', async () => {
-      if (!currentEvent) return;
+      if (!currentEvent || !currentEvent.es_pasado) return;
       const score = parseInt(star.dataset.val, 10);
       try {
         const res = await API.post('/api/calificaciones', {

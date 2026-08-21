@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, status, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -361,9 +361,15 @@ def get_mis_inscripciones(current_user: dict = Depends(get_current_user)):
 def calificar_evento(rating_data: RatingCreate, current_user: dict = Depends(get_current_user)):
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM eventos WHERE id = ?", (rating_data.evento_id,))
-        if not cursor.fetchone():
+        cursor.execute("SELECT id, fecha FROM eventos WHERE id = ?", (rating_data.evento_id,))
+        evento = cursor.fetchone()
+        if not evento:
             raise HTTPException(status_code=404, detail="El evento no existe")
+
+        ahora = datetime.now()
+        fechaEvento = datetime.strptime(evento["fecha"], "%Y-%m-%d %H:%M")
+        if ahora < fechaEvento + timedelta(days=1):
+            raise HTTPException(status_code=400, detail="Solo puedes calificar un evento despues de que pase.")
 
         cursor.execute("""
         INSERT INTO calificaciones (usuario_id, evento_id, puntuacion)
