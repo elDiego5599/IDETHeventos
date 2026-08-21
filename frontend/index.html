@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IDETHeventos | Portal de Eventos Escolares de Bachillerato</title>
+  <meta name="description" content="Portal oficial de eventos, actividades culturales, deportivas y académicas para estudiantes de bachillerato del Colegio IDETH.">
+  
+  <!-- Fuente Google Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Estilos CSS -->
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+
+  <!-- ==================== BARRA DE NAVEGACIÓN ==================== -->
+  <header class="navbar">
+    <div class="container navbar-container">
+      <a href="/" class="logo" id="brand-logo">
+        <span class="logo-badge">IDETH</span>
+        <span>Eventos</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#eventos" class="nav-link">Ver Eventos</a></li>
+        <li><a href="#beneficios" class="nav-link">¿Cómo Funciona?</a></li>
+        <li><a href="#nosotros" class="nav-link">Sobre el Portal</a></li>
+      </ul>
+
+      <div class="nav-buttons" id="nav-auth-buttons">
+        <button id="btn-open-login" class="btn btn-outline btn-sm">Iniciar Sesión</button>
+        <button id="btn-open-register" class="btn btn-primary btn-sm">Registrarse</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== HERO PRINCIPAL ==================== -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-pill">
+        <span>✨ Portal Oficial de Bachillerato 2026</span>
+      </div>
+      <h1 class="hero-title">
+        Vive la experiencia de tu colegio.<br>
+        <span>Descubre, participa y opina.</span>
+      </h1>
+      <p class="hero-subtitle">
+        Tu espacio escolar para enterarte de los torneos, ferias científicas, talleres y semanas culturales del IDETH. ¡Inscríbete a tus eventos favoritos en un clic!
+      </p>
+      <div class="hero-actions">
+        <a href="#eventos" class="btn btn-primary btn-lg">Explorar Próximos Eventos</a>
+        <button id="hero-btn-register" class="btn btn-secondary btn-lg">Crear Cuenta de Estudiante</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 3 BENEFICIOS ==================== -->
+  <section class="features-section" id="beneficios">
+    <div class="container">
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon blue">📅</div>
+          <h3>Cronograma Siempre al Día</h3>
+          <p>Conoce las fechas, horas y lugares de todas las actividades escolares sin perderte ninguna jornada.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon indigo">✍️</div>
+          <h3>Inscripción Rápida</h3>
+          <p>Reserva tu cupo en talleres y torneos interclases directamente desde tu computador o celular.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon green">⭐</div>
+          <h3>Califica y Da Sugerencias</h3>
+          <p>Evalúa las actividades de 1 a 5 estrellas, comenta tu experiencia y envía ideas a las directivas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== LISTADO DE EVENTOS ==================== -->
+  <section class="section" id="eventos">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Eventos del Colegio</h2>
+          <p class="section-subtitle">Explora las actividades programadas para este periodo escolar</p>
+        </div>
+      </div>
+
+      <!-- Filtros principales -->
+      <div class="filters-bar">
+        <button class="filter-btn main-filter-btn active" data-filter="todos">Todos</button>
+        <button class="filter-btn main-filter-btn" data-filter="proximos">Próximos</button>
+        <button class="filter-btn main-filter-btn" data-filter="pasados">Pasados</button>
+      </div>
+
+      <!-- Filtros por categoría dinámica -->
+      <div class="filters-bar" id="category-filters" style="margin-top: -10px;">
+        <!-- Se llenan automáticamente vía JavaScript -->
+      </div>
+
+      <!-- Grid de Eventos -->
+      <div class="events-grid" id="events-grid">
+        <!-- Tarjetas renderizadas con JavaScript -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SOBRE EL PORTAL ==================== -->
+  <section class="section" id="nosotros" style="background-color: var(--bg-card); border-top: 1px solid var(--border-color);">
+    <div class="container" style="max-width: 800px; text-align: center;">
+      <h2 class="section-title" style="margin-bottom: 16px;">¿Por qué creamos IDETHeventos?</h2>
+      <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 24px; line-height: 1.7;">
+        Este portal fue diseñado pensando en los estudiantes de bachillerato del Colegio IDETH. Buscamos facilitar la comunicación entre los comités estudiantiles, docentes y los salones de clase para que nadie se quede por fuera de los eventos extracurriculares y recreativos.
+      </p>
+      <div style="display: inline-flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+        <div style="background: var(--bg-main); padding: 14px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;">
+          🎓 Hecho para 11° y Bachillerato
+        </div>
+        <div style="background: var(--bg-main); padding: 14px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;">
+          ⚡ Rápido, seguro y sin enredos
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== MODAL DE INICIO DE SESIÓN ==================== -->
+  <div class="modal-overlay" id="login-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Iniciar Sesión</h3>
+        <button class="modal-close" aria-label="Cerrar">&times;</button>
+      </div>
+      <form id="login-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="login-email">Correo Electrónico</label>
+            <input type="email" id="login-email" class="form-control" placeholder="ejemplo@ideth.edu" required>
+            <p class="form-hint">Para probar: admin@ideth.edu (Admin) o estudiante@ideth.edu (Estudiante)</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-password">Contraseña</label>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+            <p class="form-hint">Contraseña de prueba: admin123 o estudiante123</p>
+          </div>
+        </div>
+        <div class="modal-footer" style="flex-direction: column; align-items: stretch; gap: 10px;">
+          <button type="submit" class="btn btn-primary btn-block">Ingresar al Portal</button>
+          <p style="text-align: center; font-size: 0.88rem; color: var(--text-muted); margin-top: 6px;">
+            ¿No tienes cuenta? <a href="#" id="switch-to-register" style="color: var(--primary); font-weight: 600; text-decoration: none;">Regístrate aquí</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DE REGISTRO ==================== -->
+  <div class="modal-overlay" id="register-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Crear Cuenta de Estudiante</h3>
+        <button class="modal-close" aria-label="Cerrar">&times;</button>
+      </div>
+      <form id="register-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="reg-nombre">Nombre y Grado</label>
+            <input type="text" id="reg-nombre" class="form-control" placeholder="Ej: Juan Pérez (11°A)" required minlength="3">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-email">Correo Electrónico</label>
+            <input type="email" id="reg-email" class="form-control" placeholder="juan@ideth.edu" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-password">Contraseña (Mínimo 6 caracteres)</label>
+            <input type="password" id="reg-password" class="form-control" placeholder="••••••••" required minlength="6">
+          </div>
+        </div>
+        <div class="modal-footer" style="flex-direction: column; align-items: stretch; gap: 10px;">
+          <button type="submit" class="btn btn-primary btn-block">Registrarme como Estudiante</button>
+          <p style="text-align: center; font-size: 0.88rem; color: var(--text-muted); margin-top: 6px;">
+            ¿Ya tienes cuenta? <a href="#" id="switch-to-login" style="color: var(--primary); font-weight: 600; text-decoration: none;">Inicia sesión</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DE DETALLE DE EVENTO PÚBLICO ==================== -->
+  <div class="modal-overlay" id="event-detail-modal">
+    <div class="modal-container" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="public-event-detail-title">Detalle del Evento</h3>
+        <button class="modal-close" aria-label="Cerrar">&times;</button>
+      </div>
+      <div class="modal-body" id="public-event-detail-body">
+        <!-- Contenido dinámico con JS -->
+      </div>
+      <div class="modal-footer" id="public-event-action">
+        <!-- Botón de acción con JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PIE DE PÁGINA ==================== -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="logo">
+        <span class="logo-badge">IDETH</span>
+        <span>Eventos</span>
+      </div>
+      <p>© 2026 Portal de Eventos Escolares IDETH - Diseñado para estudiantes de Bachillerato.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts JS -->
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
