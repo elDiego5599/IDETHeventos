@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración | IDETHeventos</title>
+  <meta name="description" content="Panel de control para administradores de IDETHeventos: gestión de eventos, usuarios, categorías, ubicaciones y organizadores.">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <style>
+    .admin-header {
+      background: white;
+      border-bottom: 1px solid var(--border-color);
+      padding: 24px 0;
+      margin-bottom: 28px;
+    }
+    .admin-header-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== BARRA DE NAVEGACIÓN ==================== -->
+  <header class="navbar">
+    <div class="container navbar-container">
+      <a href="/" class="logo">
+        <span class="logo-badge">IDETH</span>
+        <span>Admin</span>
+      </a>
+
+      <div class="nav-buttons">
+        <span id="admin-name-badge" style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">
+          🛡️ Administrador
+        </span>
+        <button onclick="logoutUser()" class="btn btn-outline btn-sm">Cerrar Sesión</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== CABECERA DEL PANEL ADMIN ==================== -->
+  <div class="admin-header">
+    <div class="container admin-header-flex">
+      <div>
+        <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">Panel de Control Administrativo</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 4px;">Gestiona los eventos escolares, catálogos, usuarios y revisa sugerencias.</p>
+      </div>
+      <button onclick="openCreateEventModal()" class="btn btn-primary">
+        ➕ Crear Nuevo Evento
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+  <main class="container" style="margin-bottom: 60px;">
+
+    <!-- 1. Tarjetas de Estadísticas -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon indigo">📅</div>
+        <div class="stat-info">
+          <h3 id="stat-total-events">0</h3>
+          <p>Eventos Registrados</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon sky">🎓</div>
+        <div class="stat-info">
+          <h3 id="stat-total-students">0</h3>
+          <p>Estudiantes Activos</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon emerald">🎟️</div>
+        <div class="stat-info">
+          <h3 id="stat-total-inscriptions">0</h3>
+          <p>Total Inscripciones</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber">💡</div>
+        <div class="stat-info">
+          <h3 id="stat-total-suggestions">0</h3>
+          <p>Sugerencias Recibidas</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Pestañas de Gestión -->
+    <div style="display: flex; gap: 12px; border-bottom: 2px solid var(--border-color); margin-bottom: 26px; overflow-x: auto;">
+      <button class="btn btn-sm btn-primary tab-admin-btn" data-tab="tab-admin-eventos" style="border-radius: var(--radius-sm) var(--radius-sm) 0 0;">
+        📅 Gestión de Eventos
+      </button>
+      <button class="btn btn-sm btn-outline tab-admin-btn" data-tab="tab-admin-catalogos" style="border-radius: var(--radius-sm) var(--radius-sm) 0 0;">
+        🏷️ Catálogos (Categorías, Ubicaciones, Organizadores)
+      </button>
+      <button class="btn btn-sm btn-outline tab-admin-btn" data-tab="tab-admin-usuarios" style="border-radius: var(--radius-sm) var(--radius-sm) 0 0;">
+        👥 Gestión de Usuarios
+      </button>
+      <button class="btn btn-sm btn-outline tab-admin-btn" data-tab="tab-admin-sugerencias" style="border-radius: var(--radius-sm) var(--radius-sm) 0 0;">
+        💡 Sugerencias de Estudiantes
+      </button>
+    </div>
+
+    <!-- PESTAÑA A: GESTIÓN DE EVENTOS -->
+    <div class="admin-tab-pane" id="tab-admin-eventos">
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Título del Evento</th>
+              <th>Fecha y Hora</th>
+              <th>Categoría</th>
+              <th>Ubicación</th>
+              <th>Organizador</th>
+              <th>Inscritos</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="admin-events-tbody">
+            <!-- Eventos renderizados por JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PESTAÑA B: GESTIÓN DE CATÁLOGOS -->
+    <div class="admin-tab-pane" id="tab-admin-catalogos" style="display: none;">
+      <div class="catalogs-grid">
+        
+        <!-- Categorías -->
+        <div class="catalog-card">
+          <div class="catalog-card-header">
+            <h3 style="font-size: 1.15rem;">🏷️ Categorías</h3>
+            <span class="badge badge-category" id="count-categories">0</span>
+          </div>
+          <ul class="catalog-list" id="list-categories"></ul>
+          <form class="catalog-form" id="form-add-category">
+            <input type="text" id="input-cat-name" class="form-control" placeholder="Nueva categoría..." required minlength="2">
+            <button type="submit" class="btn btn-primary btn-sm">Agregar</button>
+          </form>
+        </div>
+
+        <!-- Ubicaciones -->
+        <div class="catalog-card">
+          <div class="catalog-card-header">
+            <h3 style="font-size: 1.15rem;">📍 Ubicaciones</h3>
+            <span class="badge badge-category" id="count-locations">0</span>
+          </div>
+          <ul class="catalog-list" id="list-locations"></ul>
+          <form class="catalog-form" id="form-add-location">
+            <input type="text" id="input-loc-name" class="form-control" placeholder="Nueva ubicación..." required minlength="2">
+            <button type="submit" class="btn btn-primary btn-sm">Agregar</button>
+          </form>
+        </div>
+
+        <!-- Organizadores -->
+        <div class="catalog-card">
+          <div class="catalog-card-header">
+            <h3 style="font-size: 1.15rem;">👥 Organizadores</h3>
+            <span class="badge badge-category" id="count-organizers">0</span>
+          </div>
+          <ul class="catalog-list" id="list-organizers"></ul>
+          <form class="catalog-form" id="form-add-organizer">
+            <input type="text" id="input-org-name" class="form-control" placeholder="Nuevo organizador..." required minlength="2">
+            <button type="submit" class="btn btn-primary btn-sm">Agregar</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PESTAÑA C: GESTIÓN DE USUARIOS -->
+    <div class="admin-tab-pane" id="tab-admin-usuarios" style="display: none;">
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre Completo</th>
+              <th>Correo Electrónico</th>
+              <th>Rol Actual</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="admin-users-tbody">
+            <!-- Usuarios renderizados por JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PESTAÑA D: SUGERENCIAS DE ESTUDIANTES -->
+    <div class="admin-tab-pane" id="tab-admin-sugerencias" style="display: none;">
+      <div id="admin-suggestions-container">
+        <!-- Sugerencias renderizadas por JS -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== MODAL DE CREAR / EDITAR EVENTO ==================== -->
+  <div class="modal-overlay" id="event-form-modal">
+    <div class="modal-container" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="event-form-modal-title">Crear Nuevo Evento</h3>
+        <button class="modal-close" onclick="closeEventFormModal()">&times;</button>
+      </div>
+      <form id="event-admin-form">
+        <div class="modal-body">
+          <input type="hidden" id="event-form-id">
+
+          <div class="form-group">
+            <label class="form-label" for="event-form-titulo">Título del Evento</label>
+            <input type="text" id="event-form-titulo" class="form-control" placeholder="Ej: Torneo de Microfútbol 11°" required minlength="3">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="event-form-descripcion">Descripción y Detalles</label>
+            <textarea id="event-form-descripcion" class="form-control" rows="3" placeholder="Explica en qué consiste la actividad, requisitos, etc..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="event-form-fecha">Fecha y Hora</label>
+            <input type="datetime-local" id="event-form-fecha" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="event-form-categoria">Categoría</label>
+            <select id="event-form-categoria" class="form-control" required>
+              <option value="">Selecciona una categoría...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="event-form-ubicacion">Ubicación escolar</label>
+            <select id="event-form-ubicacion" class="form-control" required>
+              <option value="">Selecciona una ubicación...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="event-form-organizador">Organizador / Comité</label>
+            <select id="event-form-organizador" class="form-control" required>
+              <option value="">Selecciona un organizador...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" onclick="closeEventFormModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-save-event">Guardar Evento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Pie de página -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>© 2026 Portal de Eventos Escolares IDETH - Módulo de Administración.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/admin.js"></script>
+</body>
+</html>
