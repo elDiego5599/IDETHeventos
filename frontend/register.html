@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Estudiante | IDETHeventos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="container navbar-container">
+      <a href="/" class="logo">
+        <img src="/static/img/logoColegio.jpeg" alt="Logo Colegio IDETH" class="navbar-logo-img">
+        <span>IDETHeventos</span>
+      </a>
+      <div class="nav-buttons">
+        <a href="/login" class="btn btn-outline btn-sm">Iniciar Sesion</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="auth-page-wrapper">
+    <div class="auth-card">
+      <div class="auth-card-header">
+        <img src="/static/img/logoColegio.jpeg" alt="Logo Colegio" class="auth-logo">
+        <h1 class="auth-title">Crear Cuenta</h1>
+        <p class="auth-subtitle">Registrate como estudiante del colegio</p>
+      </div>
+
+      <form id="register-form">
+        <div class="form-group">
+          <label class="form-label" for="reg-nombre">Nombre y Grado</label>
+          <input type="text" id="reg-nombre" class="form-control" placeholder="Ej: Juan Perez (11A)" required minlength="3">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-email">Correo Electronico</label>
+          <input type="email" id="reg-email" class="form-control" placeholder="juan@ideth.edu" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-password">Contrasena</label>
+          <input type="password" id="reg-password" class="form-control" placeholder="Minimo 6 caracteres" required minlength="6">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-reg-submit">
+          Registrarme
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Ya tienes cuenta? <a href="/login">Inicia sesion</a></p>
+        <a href="/" class="auth-back">Volver al inicio</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>Portal de Eventos IDETH - Colegio IDETH</p>
+    </div>
+  </footer>
+
+  <script src="/static/js/utils.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (AuthStorage.isLoggedIn()) {
+        const u = AuthStorage.getUser();
+        window.location.href = u?.rol === 'admin' ? '/admin' : '/dashboard';
+        return;
+      }
+
+      const form = document.getElementById('register-form');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nombre = document.getElementById('reg-nombre').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const password = document.getElementById('reg-password').value;
+        const btn = document.getElementById('btn-reg-submit');
+
+        try {
+          btn.disabled = true;
+          btn.textContent = 'Creando cuenta...';
+
+          const res = await API.post('/api/auth/register', { nombre, email, password });
+          AuthStorage.setToken(res.token);
+          AuthStorage.setUser(res.usuario);
+
+          showToast('Cuenta creada con exito', 'success');
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 600);
+        } catch (err) {
+          showToast(err.message, 'error');
+          btn.disabled = false;
+          btn.textContent = 'Registrarme';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
