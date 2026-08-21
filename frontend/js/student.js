@@ -178,12 +178,15 @@ async function openStudentModal(id) {
 
     const ratingBox = document.getElementById('star-rating-box');
     const ratingHint = document.getElementById('star-rating-hint');
+    const commentFormBox = document.getElementById('comment-form-box');
     if (e.es_pasado) {
       ratingBox.style.display = 'block';
+      commentFormBox.style.display = 'block';
       updateStarUI(e.mi_calificacion || 0);
       ratingHint.textContent = 'Haz clic en una estrella para calificar (1 a 5):';
     } else {
       ratingBox.style.display = 'none';
+      commentFormBox.style.display = 'none';
     }
 
     renderComments(e.comentarios || []);

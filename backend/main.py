@@ -247,9 +247,12 @@ def create_evento(evento_data: EventCreate, admin_user: dict = Depends(require_a
 def update_evento(evento_id: int, evento_data: EventUpdate, admin_user: dict = Depends(require_admin)):
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM eventos WHERE id = ?", (evento_id,))
-        if not cursor.fetchone():
+        cursor.execute("SELECT id, fecha FROM eventos WHERE id = ?", (evento_id,))
+        eventoViejo = cursor.fetchone()
+        if not eventoViejo:
             raise HTTPException(status_code=404, detail="El evento no existe")
+
+        eraPasado = eventoViejo["fecha"] < datetime.now().strftime("%Y-%m-%d %H:%M")
 
         cursor.execute("""
         UPDATE eventos
@@ -269,6 +272,12 @@ def update_evento(evento_id: int, evento_data: EventUpdate, admin_user: dict = D
             evento_data.organizador_id,
             evento_id
         ))
+
+        if evento_data.fecha and eraPasado:
+            ahora = datetime.now().strftime("%Y-%m-%d %H:%M")
+            if ahora < evento_data.fecha:
+                cursor.execute("DELETE FROM comentarios WHERE evento_id = ?", (evento_id,))
+                cursor.execute("DELETE FROM calificaciones WHERE evento_id = ?", (evento_id,))
 
     return {"mensaje": "Evento actualizado correctamente"}
 
@@ -381,13 +390,19 @@ def calificar_evento(rating_data: RatingCreate, current_user: dict = Depends(get
 
 @app.post("/api/comentarios")
 def agregar_comentario(comment_data: CommentCreate, current_user: dict = Depends(get_current_user)):
-    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM eventos WHERE id = ?", (comment_data.evento_id,))
-        if not cursor.fetchone():
+        cursor.execute("SELECT id, fecha FROM eventos WHERE id = ?", (comment_data.evento_id,))
+        evento = cursor.fetchone()
+        if not evento:
             raise HTTPException(status_code=404, detail="El evento no existe")
 
+        ahora = datetime.now()
+        fechaEvento = datetime.strptime(evento["fecha"], "%Y-%m-%d %H:%M")
+        if ahora < fechaEvento + timedelta(days=1):
+            raise HTTPException(status_code=400, detail="Solo puedes comentar un evento despues de que pase.")
+
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
         cursor.execute(
             "INSERT INTO comentarios (usuario_id, evento_id, texto, fecha) VALUES (?, ?, ?, ?)",
             (current_user["id"], comment_data.evento_id, comment_data.texto.strip(), now_str)
