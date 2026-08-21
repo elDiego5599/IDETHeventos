@@ -4,305 +4,145 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Estudiante | IDETHeventos</title>
-  <meta name="description" content="Dashboard de estudiante para gestionar inscripciones, calificar eventos, dejar comentarios y enviar sugerencias.">
-  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
   <link rel="stylesheet" href="/static/css/styles.css">
-  <style>
-    /* Estilos específicos del Dashboard del Estudiante */
-    .dashboard-header {
-      background: white;
-      border-bottom: 1px solid var(--border-color);
-      padding: 30px 0;
-      margin-bottom: 30px;
-    }
-
-    .welcome-box {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-
-    .welcome-text h1 {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: var(--text-main);
-    }
-
-    .welcome-text p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      margin-top: 4px;
-    }
-
-    .tabs-nav {
-      display: flex;
-      gap: 12px;
-      border-bottom: 2px solid var(--border-color);
-      margin-bottom: 30px;
-      overflow-x: auto;
-      padding-bottom: 2px;
-    }
-
-    .tab-btn {
-      padding: 12px 20px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      background: none;
-      border: none;
-      border-bottom: 3px solid transparent;
-      cursor: pointer;
-      transition: var(--transition);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      white-space: nowrap;
-      margin-bottom: -2px;
-    }
-
-    .tab-btn:hover {
-      color: var(--primary);
-    }
-
-    .tab-btn.active {
-      color: var(--primary);
-      border-bottom-color: var(--primary);
-      font-weight: 700;
-    }
-
-    .tab-badge {
-      background: var(--primary-light);
-      color: var(--primary);
-      padding: 2px 8px;
-      border-radius: var(--radius-full);
-      font-size: 0.75rem;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .suggestion-card {
-      background: white;
-      border-radius: var(--radius-md);
-      padding: 30px;
-      border: 1px solid var(--border-color);
-      max-width: 650px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    /* Estrellas interactivas en el modal */
-    .star-rating-box {
-      background: var(--bg-main);
-      padding: 16px;
-      border-radius: var(--radius-sm);
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .star-item {
-      font-size: 2rem;
-      color: #cbd5e1;
-      cursor: pointer;
-      transition: var(--transition);
-      display: inline-block;
-      margin: 0 4px;
-    }
-
-    .star-item.active {
-      color: #f59e0b;
-    }
-  </style>
+  <link rel="stylesheet" href="/static/css/dashboard.css">
 </head>
 <body>
 
-  <!-- ==================== BARRA DE NAVEGACIÓN ==================== -->
   <header class="navbar">
     <div class="container navbar-container">
       <a href="/" class="logo">
-        <span class="logo-badge">IDETH</span>
-        <span>Eventos</span>
+        <img src="/static/img/logoColegio.jpeg" alt="Logo Colegio IDETH" class="navbar-logo-img">
+        <span>IDETHeventos</span>
       </a>
-
       <div class="nav-buttons">
-        <span id="student-name-badge" style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">
-          🎓 Estudiante
-        </span>
-        <button onclick="logoutUser()" class="btn btn-outline btn-sm">Cerrar Sesión</button>
+        <span class="nav-user-info" id="student-badge-name">Estudiante</span>
+        <button onclick="logoutUser()" class="btn btn-outline btn-sm">Cerrar Sesion</button>
       </div>
     </div>
   </header>
 
-  <!-- ==================== ENCABEZADO DEL DASHBOARD ==================== -->
   <div class="dashboard-header">
-    <div class="container">
-      <div class="welcome-box">
-        <div class="welcome-text">
-          <h1 id="welcome-title">¡Hola, Estudiante! 👋</h1>
-          <p>Explora el cronograma de actividades de bachillerato, gestiona tus inscripciones y comparte tu opinión.</p>
-        </div>
-        <div style="display: flex; gap: 14px;">
-          <div style="background: var(--primary-light); padding: 12px 20px; border-radius: var(--radius-sm); text-align: center;">
-            <div style="font-size: 1.4rem; font-weight: 800; color: var(--primary);" id="stat-enrolled-count">0</div>
-            <div style="font-size: 0.8rem; font-weight: 600; color: var(--primary-dark);">Mis Inscripciones</div>
-          </div>
-        </div>
+    <div class="container welcome-box">
+      <div>
+        <h1 class="welcome-title" id="welcome-title">Hola, Estudiante</h1>
+        <p class="welcome-desc">Revisa los eventos escolares, inscribete y comparte tu opinion.</p>
+      </div>
+      <div class="stat-badge-box">
+        <div class="stat-badge-number" id="stat-my-count">0</div>
+        <div class="stat-badge-label">Mis Inscripciones</div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
-  <main class="container" style="margin-bottom: 60px;">
-
-    <!-- Pestañas de Navegación -->
+  <main class="container page-bottom">
     <div class="tabs-nav">
-      <button class="tab-btn active" data-tab="tab-cronograma">
-        📅 Cronograma Escolar
-      </button>
+      <button class="tab-btn active" data-tab="tab-cronograma">Cronograma Escolar</button>
       <button class="tab-btn" data-tab="tab-mis-eventos">
-        🎟️ Mis Inscripciones <span class="tab-badge" id="badge-my-events">0</span>
+        Mis Inscripciones <span class="tab-badge" id="badge-my-count">0</span>
       </button>
-      <button class="tab-btn" data-tab="tab-sugerencias">
-        💡 Buzón de Sugerencias
-      </button>
+      <button class="tab-btn" data-tab="tab-sugerencias">Buzon de Sugerencias</button>
     </div>
 
-    <!-- PESTAÑA 1: CRONOGRAMA DE EVENTOS -->
+    <!-- Pestaña 1: Cronograma -->
     <div class="tab-content active" id="tab-cronograma">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
-        <div class="filters-bar" style="margin-bottom: 0;">
-          <button class="filter-btn active" onclick="filterStudentEvents('todos', this)">Todos</button>
-          <button class="filter-btn" onclick="filterStudentEvents('proximos', this)">Próximos</button>
-          <button class="filter-btn" onclick="filterStudentEvents('pasados', this)">Pasados</button>
-        </div>
+      <div class="filters-bar">
+        <button class="filter-btn active" onclick="filterEvents('todos', this)">Todos</button>
+        <button class="filter-btn" onclick="filterEvents('proximos', this)">Proximos</button>
+        <button class="filter-btn" onclick="filterEvents('pasados', this)">Pasados</button>
       </div>
-
       <div class="events-grid" id="student-events-grid">
-        <!-- Eventos renderizados con JS -->
+        <!-- Renderizado por student.js -->
       </div>
     </div>
 
-    <!-- PESTAÑA 2: MIS INSCRIPCIONES -->
+    <!-- Pestaña 2: Mis Inscripciones -->
     <div class="tab-content" id="tab-mis-eventos">
       <div class="events-grid" id="my-events-grid">
-        <!-- Eventos inscritos renderizados con JS -->
+        <!-- Renderizado por student.js -->
       </div>
     </div>
 
-    <!-- PESTAÑA 3: BUZÓN DE SUGERENCIAS -->
+    <!-- Pestaña 3: Buzón de Sugerencias -->
     <div class="tab-content" id="tab-sugerencias">
       <div class="suggestion-card">
-        <h2 style="font-size: 1.3rem; margin-bottom: 8px; color: var(--text-main);">¿Tienes una idea o sugerencia para el colegio?</h2>
-        <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 20px;">
-          Tus sugerencias son enviadas directamente a los comités organizadores y directivas de bachillerato para mejorar las actividades escolares.
-        </p>
-
-        <form id="suggestion-form">
+        <h2 class="suggestion-card-title">Tienes una idea o sugerencia?</h2>
+        <p class="suggestion-card-desc">Tus sugerencias se envian a los organizadores para mejorar las actividades escolares.</p>
+        <form id="form-suggestion">
           <div class="form-group">
-            <label class="form-label" for="suggestion-text">Escribe tu sugerencia o propuesta de evento:</label>
-            <textarea id="suggestion-text" class="form-control" rows="4" placeholder="Ej: Me gustaría que organizaran un torneo de ajedrez o un taller de preparación para el ICFES..." required minlength="5"></textarea>
+            <label class="form-label" for="input-suggestion-text">Escribe tu sugerencia:</label>
+            <textarea id="input-suggestion-text" class="form-control" rows="4" placeholder="Escribe tu propuesta aqui..." required minlength="5"></textarea>
           </div>
-          <button type="submit" class="btn btn-primary" id="btn-send-suggestion">
-            Enviar Sugerencia
-          </button>
+          <button type="submit" class="btn btn-primary">Enviar Sugerencia</button>
         </form>
       </div>
     </div>
-
   </main>
 
-  <!-- ==================== MODAL DE DETALLE Y ACCIONES DE EVENTO ==================== -->
-  <div class="modal-overlay" id="event-action-modal">
-    <div class="modal-container" style="max-width: 650px;">
+  <!-- Modal Detalle y Acciones de Estudiante -->
+  <div class="modal-overlay" id="student-event-modal">
+    <div class="modal-container">
       <div class="modal-header">
-        <h3 class="modal-title" id="modal-event-title">Detalle del Evento</h3>
-        <button class="modal-close" onclick="closeStudentModal()">&times;</button>
+        <h3 class="modal-title" id="modal-title">Detalle del Evento</h3>
+        <button class="modal-close" onclick="closeModal('student-event-modal')">&times;</button>
       </div>
-      
       <div class="modal-body">
-        <!-- Badges y Descripción -->
-        <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
-          <span class="badge badge-category" id="modal-category-badge">Categoría</span>
-          <span class="badge" id="modal-status-badge">Estado</span>
-          <span class="badge badge-enrolled" id="modal-enrolled-indicator" style="display: none;">✓ Estás Inscrito</span>
+        <div class="modal-badges">
+          <span class="badge badge-category" id="modal-cat">Categoria</span>
+          <span class="badge" id="modal-status">Estado</span>
+        </div>
+        <p class="modal-desc" id="modal-desc"></p>
+        <div class="event-meta">
+          <div><strong>Fecha:</strong> <span id="modal-date"></span></div>
+          <div><strong>Lugar:</strong> <span id="modal-loc"></span></div>
+          <div><strong>Organiza:</strong> <span id="modal-org"></span></div>
+          <div><strong>Inscritos:</strong> <span id="modal-enrolled-count"></span> estudiantes</div>
         </div>
 
-        <p id="modal-event-description" style="font-size: 0.98rem; color: var(--text-main); margin-bottom: 20px; line-height: 1.6;"></p>
-
-        <div class="event-meta" style="margin-bottom: 24px;">
-          <div class="event-meta-item"><span>📅 <strong>Fecha:</strong> <span id="modal-event-date"></span></span></div>
-          <div class="event-meta-item"><span>📍 <strong>Lugar:</strong> <span id="modal-event-location"></span></span></div>
-          <div class="event-meta-item"><span>👥 <strong>Organiza:</strong> <span id="modal-event-organizer"></span></span></div>
-          <div class="event-meta-item"><span>🎟️ <strong>Total inscritos:</strong> <span id="modal-event-enrolled-count"></span> estudiantes</span></div>
+        <div class="modal-enroll-box" id="modal-enroll-action">
+          <!-- Boton renderizado por student.js -->
         </div>
 
-        <!-- Botón de Inscripción / Desinscripción -->
-        <div style="margin-bottom: 26px; text-align: center;" id="modal-enrollment-action-container">
-          <!-- Botón renderizado por JS -->
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 24px;">
-
-        <!-- SECCIÓN: CALIFICAR CON 1 A 5 ESTRELLAS -->
         <div class="star-rating-box">
-          <h4 style="font-size: 1rem; margin-bottom: 6px;">Califica esta actividad</h4>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;" id="rating-status-text">Haz clic en las estrellas para dejar tu puntuación:</p>
-          <div id="star-rating-container">
-            <span class="star-item" data-val="1">★</span>
-            <span class="star-item" data-val="2">★</span>
-            <span class="star-item" data-val="3">★</span>
-            <span class="star-item" data-val="4">★</span>
-            <span class="star-item" data-val="5">★</span>
+          <h4 class="star-rating-title">Califica esta actividad</h4>
+          <p class="star-rating-hint">Haz clic en una estrella para calificar (1 a 5):</p>
+          <div>
+            <span class="star-item" data-val="1">&#9733;</span>
+            <span class="star-item" data-val="2">&#9733;</span>
+            <span class="star-item" data-val="3">&#9733;</span>
+            <span class="star-item" data-val="4">&#9733;</span>
+            <span class="star-item" data-val="5">&#9733;</span>
           </div>
         </div>
 
-        <!-- SECCIÓN: COMENTARIOS DEL EVENTO -->
-        <h4 style="font-size: 1.05rem; margin-bottom: 12px;">Muro de Comentarios y Experiencias</h4>
-        
-        <form id="add-comment-form" style="margin-bottom: 20px;">
-          <div class="form-group" style="margin-bottom: 10px;">
-            <input type="text" id="comment-text" class="form-control" placeholder="¿Qué te pareció el evento? Escribe tu experiencia..." required minlength="2">
+        <h4 class="modal-section-title">Comentarios</h4>
+        <form id="form-add-comment" style="margin-bottom: 14px;">
+          <div class="form-group" style="margin-bottom: 8px;">
+            <input type="text" id="input-comment-text" class="form-control" placeholder="Escribe tu comentario sobre este evento..." required minlength="2">
           </div>
-          <button type="submit" class="btn btn-secondary btn-sm" id="btn-submit-comment">Publicar Comentario</button>
+          <button type="submit" class="btn btn-secondary btn-sm">Publicar Comentario</button>
         </form>
 
-        <div id="modal-comments-list" style="max-height: 220px; overflow-y: auto;">
-          <!-- Comentarios renderizados por JS -->
+        <div class="modal-comments-box" id="modal-comments-list">
+          <!-- Comentarios renderizados por student.js -->
         </div>
       </div>
-
       <div class="modal-footer">
-        <button class="btn btn-outline btn-sm" onclick="closeStudentModal()">Cerrar</button>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('student-event-modal')">Cerrar</button>
       </div>
     </div>
   </div>
 
-  <!-- Pie de página -->
   <footer class="footer">
-    <div class="container footer-content">
-      <p>© 2026 Portal de Eventos Escolares IDETH - Panel de Estudiante.</p>
+    <div class="container">
+      <p>Portal de Eventos IDETH - Colegio IDETH</p>
     </div>
   </footer>
 
-  <!-- Scripts -->
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/utils.js"></script>
   <script src="/static/js/student.js"></script>
 </body>
 </html>
