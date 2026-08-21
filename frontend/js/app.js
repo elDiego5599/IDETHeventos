@@ -1,28 +1,35 @@
 /**
  * app.js - Logica de la pagina principal
  */
-
 let allEvents = [];
 
+// Cuando la pagina termina de cargar, inicializamos la UI y traemos eventos.
 document.addEventListener('DOMContentLoaded', () => {
+  // Actualiza la barra de navegacion (si existe) con usuario/estado
   updateNavbar();
+  // Carga eventos públicos desde la API y los muestra
   loadPublicEvents();
+  // Configura botones de filtro (Todos / Proximos / Pasados)
   setupFilterButtons();
 });
 
+// Trae la lista de eventos públicos desde la API y renderiza.
 async function loadPublicEvents() {
   const container = document.getElementById('events-grid');
   if (!container) return;
 
   try {
     const events = await API.get('/api/eventos');
+    // Guardamos en variable global para poder filtrar sin volver a pedir al servidor
     allEvents = events;
     renderEvents(events);
   } catch (err) {
+    // Mensaje amigable si hay un problema de red/servidor
     container.innerHTML = `<div class="empty-state">No se pudo cargar la lista de eventos.</div>`;
   }
 }
 
+// Dibuja tarjetas de evento en el grid a partir de un array de eventos.
 function renderEvents(events) {
   const container = document.getElementById('events-grid');
   if (!container) return;
@@ -32,6 +39,7 @@ function renderEvents(events) {
     return;
   }
 
+  // Construimos HTML para cada evento (título, fecha, lugar, estado, calificación)
   container.innerHTML = events.map(e => {
     const statusBadge = e.es_pasado
       ? '<span class="badge badge-past">Finalizado</span>'
@@ -67,6 +75,7 @@ function renderEvents(events) {
   }).join('');
 }
 
+// Configura los botones que filtran la vista principal (clase .main-filter-btn)
 function setupFilterButtons() {
   const btns = document.querySelectorAll('.main-filter-btn');
   btns.forEach(b => {
@@ -82,11 +91,13 @@ function setupFilterButtons() {
   });
 }
 
+// Abre el modal de detalle público para un evento dado. Muestra comentarios y acciones.
 async function openPublicEventDetail(id) {
   try {
     const e = await API.get(`/api/eventos/${id}`);
     document.getElementById('modal-detail-title').textContent = e.titulo;
 
+    // Render de comentarios: si hay, mostramos la lista; si no, un mensaje
     const commentsHtml = e.comentarios && e.comentarios.length > 0
       ? e.comentarios.map(c => `
           <div class="comment-item">
@@ -116,6 +127,7 @@ async function openPublicEventDetail(id) {
       <div class="modal-comments-box">${commentsHtml}</div>
     `;
 
+    // Accion personalizada según si el usuario está logeado o no
     const actionContainer = document.getElementById('modal-detail-action');
     if (AuthStorage.isLoggedIn()) {
       const user = AuthStorage.getUser();
@@ -126,6 +138,7 @@ async function openPublicEventDetail(id) {
 
     openModal('event-detail-modal');
   } catch (err) {
+    // Mensaje simple para el usuario si falla la carga del detalle
     showToast('Error al cargar detalle del evento', 'error');
   }
 }
