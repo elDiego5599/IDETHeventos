@@ -5,20 +5,25 @@
 let currentEvent = null;
 let allEvents = [];
 
+// Al cargar la pagina del estudiante, comprobamos que exista sesion y preparamos la vista.
 document.addEventListener('DOMContentLoaded', async () => {
   const user = AuthStorage.getUser();
+  // Si no hay sesion, redirigimos al login
   if (!AuthStorage.isLoggedIn() || !user) {
     window.location.href = '/login';
     return;
   }
+  // Si es admin, redirigimos al panel de administracion
   if (user.rol === 'admin') {
     window.location.href = '/admin';
     return;
   }
 
+  // Personalizamos la UI con el nombre del usuario
   document.getElementById('welcome-title').textContent = `Hola, ${user.nombre}`;
   document.getElementById('student-badge-name').textContent = user.nombre;
 
+  // Inicializaciones de la pagina: pestañas, sistema de estrellas y formularios
   setupTabs();
   setupStarRating();
   setupForms();
@@ -54,6 +59,7 @@ async function loadEvents() {
     allEvents = events;
     renderStudentEvents(events);
   } catch (err) {
+    // Aviso amistoso si la API no responde
     showToast('Error al cargar eventos', 'error');
   }
 }
@@ -67,6 +73,7 @@ async function loadMyInscriptions() {
     const container = document.getElementById('my-events-grid');
     if (!container) return;
 
+    // Si no hay inscripciones, mostramos un mensaje con CTA para ver el cronograma
     if (events.length === 0) {
       container.innerHTML = `
         <div class="empty-state">
@@ -174,6 +181,7 @@ async function openStudentModal(id) {
     statusEl.className = e.es_pasado ? 'badge badge-past' : 'badge badge-upcoming';
     statusEl.textContent = e.es_pasado ? 'Finalizado' : 'Proximo';
 
+    // Botón de inscripción o estado según si el usuario ya está inscrito
     renderEnrollmentButton(e);
 
     const ratingBox = document.getElementById('star-rating-box');
