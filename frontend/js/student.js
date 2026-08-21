@@ -5,25 +5,25 @@
 let currentEvent = null;
 let allEvents = [];
 
-// Al cargar la pagina del estudiante, comprobamos que exista sesion y preparamos la vista.
+// Cuando el estudiante entra al panel, verificamos su sesión y mostramos datos.
 document.addEventListener('DOMContentLoaded', async () => {
   const user = AuthStorage.getUser();
-  // Si no hay sesion, redirigimos al login
+  // Si no está conectado, lo enviamos a iniciar sesión
   if (!AuthStorage.isLoggedIn() || !user) {
     window.location.href = '/login';
     return;
   }
-  // Si es admin, redirigimos al panel de administracion
+  // Si es profesor (admin), lo mandamos al panel de profesores
   if (user.rol === 'admin') {
     window.location.href = '/admin';
     return;
   }
 
-  // Personalizamos la UI con el nombre del usuario
+  // Mostramos un saludo sencillo con el nombre del estudiante
   document.getElementById('welcome-title').textContent = `Hola, ${user.nombre}`;
   document.getElementById('student-badge-name').textContent = user.nombre;
 
-  // Inicializaciones de la pagina: pestañas, sistema de estrellas y formularios
+  // Preparamos las pestañas, el rating por estrellas y los formularios
   setupTabs();
   setupStarRating();
   setupForms();
@@ -59,7 +59,7 @@ async function loadEvents() {
     allEvents = events;
     renderStudentEvents(events);
   } catch (err) {
-    // Aviso amistoso si la API no responde
+    // Mensaje simple para que el estudiante entienda que hubo un error
     showToast('Error al cargar eventos', 'error');
   }
 }
@@ -73,7 +73,7 @@ async function loadMyInscriptions() {
     const container = document.getElementById('my-events-grid');
     if (!container) return;
 
-    // Si no hay inscripciones, mostramos un mensaje con CTA para ver el cronograma
+    // Si no hay inscripciones, mostramos un mensaje con un botón claro
     if (events.length === 0) {
       container.innerHTML = `
         <div class="empty-state">
@@ -181,13 +181,14 @@ async function openStudentModal(id) {
     statusEl.className = e.es_pasado ? 'badge badge-past' : 'badge badge-upcoming';
     statusEl.textContent = e.es_pasado ? 'Finalizado' : 'Proximo';
 
-    // Botón de inscripción o estado según si el usuario ya está inscrito
-    renderEnrollmentButton(e);
+    // Mostramos el botón para inscribirse o para cancelar, según el caso
+      renderEnrollmentButton(e);
 
     const ratingBox = document.getElementById('star-rating-box');
     const ratingHint = document.getElementById('star-rating-hint');
     const commentFormBox = document.getElementById('comment-form-box');
     if (e.es_pasado) {
+      // Si el evento ya pasó, mostramos las estrellas y el formulario de comentario
       ratingBox.style.display = 'block';
       commentFormBox.style.display = 'block';
       updateStarUI(e.mi_calificacion || 0);

@@ -7,7 +7,11 @@ DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 
 @contextmanager
 def get_db():
-    """Context manager para la conexion a SQLite."""
+    """Abre la base de datos y la cierra al terminar.
+
+    Explicación simple: usar `with get_db()` nos da una conexión segura.
+    Si todo sale bien, guarda los cambios; si hay error, deshace los cambios.
+    """
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
@@ -21,11 +25,19 @@ def get_db():
         conn.close()
 
 def hash_password(password: str) -> str:
+    # Crea un hash seguro para la contraseña.
+    # Explicación simple: no guardamos la contraseña literal, guardamos
+    # una versión difícil de leer para que nadie la copie.
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
 def init_db():
-    """Crea las 9 tablas requeridas e inserta usuarios y catalogos iniciales."""
+    """Crea las tablas necesarias y pone datos de ejemplo.
+
+    Explicación simple: cuando arrancamos la aplicación por primera vez
+    necesitamos crear las tablas (usuarios, eventos, etc.) y algunos datos
+    de ejemplo para probar la app.
+    """
     with get_db() as conn:
         cursor = conn.cursor()
 
@@ -135,7 +147,11 @@ def init_db():
     print("Base de datos SQLite inicializada correctamente en:", DB_PATH)
 
 def seed_initial_data(conn):
-    """Inserta solo usuarios y catalogos iniciales."""
+    """Agrega usuarios y listas (categorias, ubicaciones...) si no existen.
+
+    Explicación simple: pone un profesor y dos estudiantes, y ejemplos de
+    categorias, lugares y organizadores para que la aplicación tenga contenido.
+    """
     cursor = conn.cursor()
 
     # 1. Usuarios

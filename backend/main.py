@@ -47,9 +47,13 @@ app.add_middleware(
 )
 
 # ----------------- 1. Autenticacion -----------------
-
 @app.post("/api/auth/register", status_code=status.HTTP_201_CREATED)
 def register(user_data: UserRegister):
+    """Registra un nuevo usuario y le da un token.
+
+    Explicación simple: guarda el nombre, email y contraseña (en forma segura),
+    y devuelve un "boleto" (token) para que no tenga que iniciar sesión otra vez.
+    """
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM usuarios WHERE email = ?", (user_data.email.lower().strip(),))
@@ -80,6 +84,11 @@ def register(user_data: UserRegister):
 
 @app.post("/api/auth/login")
 def login(credentials: UserLogin):
+    """Inicia sesión y devuelve token si las credenciales son correctas.
+
+    Explicación simple: si el correo y la contraseña están bien, el servidor
+    devuelve un token que representa la sesión del usuario.
+    """
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -118,6 +127,12 @@ def get_eventos(
     categoria_id: int = Query(None),
     current_user: dict = Depends(get_optional_current_user)
 ):
+    """Devuelve la lista de eventos. Permite filtrar por tipo o categoria.
+
+    Explicación simple: esta ruta muestra todos los eventos, o solo los
+    próximos o los pasados. También añade información como cuántos están
+    inscritos y la calificación promedio.
+    """
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
     query = """
     SELECT 
@@ -172,6 +187,11 @@ def get_eventos(
 
 @app.get("/api/eventos/{evento_id}")
 def get_evento_detalle(evento_id: int, current_user: dict = Depends(get_optional_current_user)):
+    """Devuelve información completa de un evento, incluyendo comentarios.
+
+    Explicación simple: muestra los detalles del evento y los comentarios de
+    otros estudiantes. Si estás logeado, indica si ya te inscribiste.
+    """
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -226,6 +246,11 @@ def get_evento_detalle(evento_id: int, current_user: dict = Depends(get_optional
 
 @app.post("/api/eventos", status_code=status.HTTP_201_CREATED)
 def create_evento(evento_data: EventCreate, admin_user: dict = Depends(require_admin)):
+    """Crea un nuevo evento (solo administradores).
+
+    Explicación simple: los profesores pueden agregar eventos con título,
+    descripción, fecha y lugar. Devuelve el id del nuevo evento.
+    """
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -245,6 +270,12 @@ def create_evento(evento_data: EventCreate, admin_user: dict = Depends(require_a
 
 @app.put("/api/eventos/{evento_id}")
 def update_evento(evento_id: int, evento_data: EventUpdate, admin_user: dict = Depends(require_admin)):
+    """Actualiza un evento existente (solo administradores).
+
+    Explicación simple: permite cambiar los datos del evento. Si el evento
+    ya habia pasado y se cambia la fecha a una futura, se borran comentarios
+    y calificaciones antiguas para evitar confusión.
+    """
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id, fecha FROM eventos WHERE id = ?", (evento_id,))
@@ -296,6 +327,11 @@ def delete_evento(evento_id: int, admin_user: dict = Depends(require_admin)):
 
 @app.post("/api/inscripciones/{evento_id}")
 def inscribirse_a_evento(evento_id: int, current_user: dict = Depends(get_current_user)):
+    """Inscribe al estudiante en un evento.
+
+    Explicación simple: marca que el estudiante asistirá. Si ya está
+    inscrito, devuelve un mensaje indicando eso.
+    """
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id, titulo FROM eventos WHERE id = ?", (evento_id,))
@@ -332,6 +368,11 @@ def cancelar_inscripcion(evento_id: int, current_user: dict = Depends(get_curren
 
 @app.get("/api/inscripciones/mis-eventos")
 def get_mis_inscripciones(current_user: dict = Depends(get_current_user)):
+    """Devuelve los eventos en los que está inscrito el usuario.
+
+    Explicación simple: lista las inscripciones del estudiante con datos
+    útiles como fecha, lugar y calificación promedio.
+    """
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
     with get_db() as conn:
         cursor = conn.cursor()
@@ -368,6 +409,11 @@ def get_mis_inscripciones(current_user: dict = Depends(get_current_user)):
 
 @app.post("/api/calificaciones")
 def calificar_evento(rating_data: RatingCreate, current_user: dict = Depends(get_current_user)):
+    """Permite que un estudiante califique un evento que ya pasó.
+
+    Explicación simple: solo se puede calificar después de que el evento
+    termine (para evitar calificar antes de asistir).
+    """
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id, fecha FROM eventos WHERE id = ?", (rating_data.evento_id,))
@@ -390,6 +436,11 @@ def calificar_evento(rating_data: RatingCreate, current_user: dict = Depends(get
 
 @app.post("/api/comentarios")
 def agregar_comentario(comment_data: CommentCreate, current_user: dict = Depends(get_current_user)):
+    """Agrega un comentario a un evento (solo después de que pase).
+
+    Explicación simple: los estudiantes pueden dejar su opinión o experiencia
+    sobre un evento ya realizado.
+    """
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id, fecha FROM eventos WHERE id = ?", (comment_data.evento_id,))
@@ -424,6 +475,9 @@ def agregar_comentario(comment_data: CommentCreate, current_user: dict = Depends
 
 @app.post("/api/sugerencias")
 def crear_sugerencia(sug_data: SuggestionCreate, current_user: dict = Depends(get_current_user)):
+    # Envia una sugerencia al sistema (visible para administradores)
+    # Explicación simple: permite a los estudiantes escribir ideas o quejas
+    # que verán los profesores.
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
     with get_db() as conn:
         cursor = conn.cursor()

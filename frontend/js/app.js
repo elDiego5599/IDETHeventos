@@ -1,15 +1,16 @@
 /**
  * app.js - Logica de la pagina principal
  */
+
 let allEvents = [];
 
-// Cuando la pagina termina de cargar, inicializamos la UI y traemos eventos.
+// Al abrir la página: mostramos información simple y pedimos los eventos.
 document.addEventListener('DOMContentLoaded', () => {
-  // Actualiza la barra de navegacion (si existe) con usuario/estado
+  // Muestra el nombre del usuario y opciones si está conectado
   updateNavbar();
-  // Carga eventos públicos desde la API y los muestra
+  // Trae la lista de eventos para que los estudiantes la vean
   loadPublicEvents();
-  // Configura botones de filtro (Todos / Proximos / Pasados)
+  // Prepara los botones que permiten filtrar la lista (Todos/Próximos/Pasados)
   setupFilterButtons();
 });
 
@@ -20,11 +21,11 @@ async function loadPublicEvents() {
 
   try {
     const events = await API.get('/api/eventos');
-    // Guardamos en variable global para poder filtrar sin volver a pedir al servidor
+    // Guardamos los eventos en memoria para que los filtros sean rápidos
     allEvents = events;
     renderEvents(events);
   } catch (err) {
-    // Mensaje amigable si hay un problema de red/servidor
+    // Si falla, mostramos un mensaje fácil de entender
     container.innerHTML = `<div class="empty-state">No se pudo cargar la lista de eventos.</div>`;
   }
 }
@@ -35,6 +36,7 @@ function renderEvents(events) {
   if (!container) return;
 
   if (events.length === 0) {
+    // Mensaje claro para los estudiantes cuando no hay eventos
     container.innerHTML = `<div class="empty-state">No hay eventos publicados en este momento.</div>`;
     return;
   }
@@ -49,7 +51,7 @@ function renderEvents(events) {
 
     const ratingText = e.calificacion_promedio
       ? `Calificacion: ${e.calificacion_promedio}/5 (${e.total_calificaciones})`
-      : 'Sin calificaciones';
+      : 'Aun no tiene calificaciones';
 
     return `
       <div class="event-card">
@@ -78,6 +80,7 @@ function renderEvents(events) {
 // Configura los botones que filtran la vista principal (clase .main-filter-btn)
 function setupFilterButtons() {
   const btns = document.querySelectorAll('.main-filter-btn');
+  // Cada botón pone su estado activo y filtra la lista para mostrar lo que pide
   btns.forEach(b => {
     b.addEventListener('click', () => {
       btns.forEach(x => x.classList.remove('active'));
@@ -97,7 +100,7 @@ async function openPublicEventDetail(id) {
     const e = await API.get(`/api/eventos/${id}`);
     document.getElementById('modal-detail-title').textContent = e.titulo;
 
-    // Render de comentarios: si hay, mostramos la lista; si no, un mensaje
+    // Mostramos los comentarios si existen, si no, un texto explicativo
     const commentsHtml = e.comentarios && e.comentarios.length > 0
       ? e.comentarios.map(c => `
           <div class="comment-item">
@@ -127,7 +130,8 @@ async function openPublicEventDetail(id) {
       <div class="modal-comments-box">${commentsHtml}</div>
     `;
 
-    // Accion personalizada según si el usuario está logeado o no
+    // Si el estudiante está conectado, mostramos un enlace a su panel;
+    // si no, le pedimos que inicie sesión.
     const actionContainer = document.getElementById('modal-detail-action');
     if (AuthStorage.isLoggedIn()) {
       const user = AuthStorage.getUser();
@@ -138,7 +142,6 @@ async function openPublicEventDetail(id) {
 
     openModal('event-detail-modal');
   } catch (err) {
-    // Mensaje simple para el usuario si falla la carga del detalle
     showToast('Error al cargar detalle del evento', 'error');
   }
 }
