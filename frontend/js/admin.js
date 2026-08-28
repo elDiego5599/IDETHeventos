@@ -1,12 +1,10 @@
-/**
- * admin.js - Panel de Administracion
- */
-
+// Logica del panel de administrador
 let cachedCats = [];
 let cachedLocs = [];
 let cachedOrgs = [];
 let editingEventId = null;
 
+// Cuando se carga la pagina revisamos que sea admin y cargamos todo
 document.addEventListener('DOMContentLoaded', async () => {
   const user = AuthStorage.getUser();
   if (!AuthStorage.isLoggedIn() || !user || user.rol !== 'admin') {
@@ -21,15 +19,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupCatalogForms();
   setupEventForm();
 
-  await Promise.all([
-    loadStats(),
-    loadCatalogs(),
-    loadEvents(),
-    loadUsers(),
-    loadSuggestions()
-  ]);
+  // Cargamos los datos uno por uno
+  await loadStats();
+  await loadCatalogs();
+  await loadEvents();
+  await loadUsers();
+  await loadSuggestions();
 });
 
+// Cambia entre las pestañas del panel
 function setupAdminTabs() {
   const btns = document.querySelectorAll('.tab-admin-btn');
   const panes = document.querySelectorAll('.admin-tab-pane');
@@ -51,6 +49,7 @@ function setupAdminTabs() {
   });
 }
 
+// Carga los numeros del dashboard
 async function loadStats() {
   try {
     const stats = await API.get('/api/stats');
@@ -63,6 +62,7 @@ async function loadStats() {
   }
 }
 
+// Carga la tabla de eventos para el admin
 async function loadEvents() {
   const tbody = document.getElementById('admin-events-tbody');
   if (!tbody) return;
@@ -95,6 +95,7 @@ async function loadEvents() {
   }
 }
 
+// Abre el modal para crear un evento nuevo
 function openCreateEvent() {
   editingEventId = null;
   document.getElementById('event-modal-title').textContent = 'Crear Evento';
@@ -104,6 +105,7 @@ function openCreateEvent() {
   openModal('event-form-modal');
 }
 
+// Abre el modal para editar un evento existente
 async function openEditEvent(id) {
   try {
     const e = await API.get(`/api/eventos/${id}`);
@@ -113,6 +115,7 @@ async function openEditEvent(id) {
     document.getElementById('event-id').value = e.id;
     document.getElementById('event-titulo').value = e.titulo;
     document.getElementById('event-desc').value = e.descripcion || '';
+    // La fecha viene como "2026-09-15 14:30" y el input la necesita como "2026-09-15T14:30"
     document.getElementById('event-fecha').value = e.fecha.replace(' ', 'T');
 
     populateSelects();
@@ -126,6 +129,7 @@ async function openEditEvent(id) {
   }
 }
 
+// Configura el formulario de crear y editar eventos
 function setupEventForm() {
   const form = document.getElementById('form-event-admin');
   if (!form) return;
@@ -163,6 +167,7 @@ function setupEventForm() {
   });
 }
 
+// Elimina un evento
 async function deleteEvent(id) {
   if (!confirm(`Eliminar permanentemente el evento #${id}?`)) return;
   try {
@@ -175,20 +180,21 @@ async function deleteEvent(id) {
   }
 }
 
+// Carga las categorias, ubicaciones y organizadores
 async function loadCatalogs() {
   try {
-    const [cats, locs, orgs] = await Promise.all([
-      API.get('/api/categorias'),
-      API.get('/api/ubicaciones'),
-      API.get('/api/organizadores')
-    ]);
+    // Pedimos los tres catalogos al backend
+    const cats = await API.get('/api/categorias');
+    const locs = await API.get('/api/ubicaciones');
+    const orgs = await API.get('/api/organizadores');
+
     cachedCats = cats;
     cachedLocs = locs;
     cachedOrgs = orgs;
 
-    renderCatalogList('list-cats', cats, deleteCategory);
-    renderCatalogList('list-locs', locs, deleteLocation);
-    renderCatalogList('list-orgs', orgs, deleteOrganizer);
+    renderCatalogList('list-cats', cats, 'cat');
+    renderCatalogList('list-locs', locs, 'loc');
+    renderCatalogList('list-orgs', orgs, 'org');
 
     document.getElementById('count-cats').textContent = cats.length;
     document.getElementById('count-locs').textContent = locs.length;
@@ -198,21 +204,29 @@ async function loadCatalogs() {
   }
 }
 
-function renderCatalogList(containerId, items, deleteCb) {
+// Muestra una lista de categorias, ubicaciones u organizadores
+function renderCatalogList(containerId, items, tipo) {
   const c = document.getElementById(containerId);
   if (!c) return;
   if (items.length === 0) {
     c.innerHTML = `<li class="catalog-list-item" style="color: var(--text-muted);">Sin elementos.</li>`;
     return;
   }
+  // Segun el tipo elegimos que funcion de eliminar usar
+  let funcionEliminar = '';
+  if (tipo === 'cat') funcionEliminar = 'deleteCategory';
+  if (tipo === 'loc') funcionEliminar = 'deleteLocation';
+  if (tipo === 'org') funcionEliminar = 'deleteOrganizer';
+
   c.innerHTML = items.map(item => `
     <li class="catalog-list-item">
       <span>${item.nombre}</span>
-      <button onclick="${deleteCb.name}(${item.id})" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);">Eliminar</button>
+      <button onclick="${funcionEliminar}(${item.id})" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);">Eliminar</button>
     </li>
   `).join('');
 }
 
+// Llena los selects del formulario de eventos con los datos guardados
 function populateSelects() {
   document.getElementById('event-cat').innerHTML = '<option value="">Selecciona categoria...</option>' +
     cachedCats.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
@@ -224,6 +238,7 @@ function populateSelects() {
     cachedOrgs.map(o => `<option value="${o.id}">${o.nombre}</option>`).join('');
 }
 
+// Configura los tres formularios para agregar categorias, ubicaciones y organizadores
 function setupCatalogForms() {
   document.getElementById('form-add-cat')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -283,6 +298,7 @@ async function deleteOrganizer(id) {
   } catch (err) { showToast(err.message, 'error'); }
 }
 
+// Carga la tabla de usuarios para que el admin los vea
 async function loadUsers() {
   const tbody = document.getElementById('admin-users-tbody');
   if (!tbody) return;
@@ -318,6 +334,7 @@ async function loadUsers() {
   }
 }
 
+// Cambia el rol de un usuario
 async function changeRole(id, newRole) {
   try {
     const res = await API.put(`/api/usuarios/${id}/rol`, { rol: newRole });
@@ -327,6 +344,7 @@ async function changeRole(id, newRole) {
   } catch (err) { showToast(err.message, 'error'); }
 }
 
+// Elimina un usuario
 async function deleteUser(id) {
   if (!confirm('Eliminar este usuario del sistema?')) return;
   try {
@@ -337,6 +355,7 @@ async function deleteUser(id) {
   } catch (err) { showToast(err.message, 'error'); }
 }
 
+// Carga las sugerencias que han enviado los estudiantes
 async function loadSuggestions() {
   const container = document.getElementById('admin-suggestions-container');
   if (!container) return;
@@ -363,6 +382,7 @@ async function loadSuggestions() {
   }
 }
 
+// Marca una sugerencia como revisada (la elimina)
 async function deleteSuggestion(id) {
   try {
     await API.delete(`/api/sugerencias/${id}`);

@@ -1,32 +1,32 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
-# Modelos para las peticiones y respuestas de la API.
-# Explicación simple: cada clase dice qué datos espera el servidor.
+# Estos modelos son para validar que los datos que llegan esten bien
+# Si algo falta o esta mal escrito, FastAPI avisa automaticamente
 
-# Datos para registrar a un usuario (registro)
+# Datos para registrar un usuario nuevo
 class UserRegister(BaseModel):
-    nombre: str = Field(..., min_length=2, max_length=100, description="Nombre completo del estudiante")
-    email: str = Field(..., pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$", description="Correo electrónico institucional o personal")
-    password: str = Field(..., min_length=6, description="Contraseña de al menos 6 caracteres")
+    nombre: str = Field(..., min_length=2, max_length=100)
+    email: str = Field(..., pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    password: str = Field(..., min_length=6)
 
-# Datos para iniciar sesión
+# Datos para iniciar sesion
 class UserLogin(BaseModel):
     email: str = Field(..., pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
     password: str
 
-# Respuesta con información pública del usuario
+# Datos que devolvemos cuando consultamos un usuario
 class UserResponse(BaseModel):
     id: int
     nombre: str
     email: str
     rol: str
 
-# Cambiar el rol de un usuario (admin / estudiante)
+# Para cambiar el rol de un usuario
 class UserUpdateRole(BaseModel):
-    rol: str = Field(..., pattern="^(admin|estudiante)$", description="Rol: 'admin' o 'estudiante'")
+    rol: str = Field(..., pattern="^(admin|estudiante)$")
 
-# Crear un item simple para categorias, ubicaciones u organizadores
+# Para crear categorias, ubicaciones y organizadores (todos usan lo mismo)
 class CatalogCreate(BaseModel):
     nombre: str = Field(..., min_length=2, max_length=100)
 
@@ -34,7 +34,7 @@ class CatalogItem(BaseModel):
     id: int
     nombre: str
 
-# Datos para crear o actualizar un evento
+# Datos para crear un evento nuevo
 class EventCreate(BaseModel):
     titulo: str = Field(..., min_length=3, max_length=150)
     descripcion: Optional[str] = ""
@@ -43,6 +43,7 @@ class EventCreate(BaseModel):
     categoria_id: Optional[int] = None
     organizador_id: Optional[int] = None
 
+# Datos para editar un evento (todo es opcional)
 class EventUpdate(BaseModel):
     titulo: Optional[str] = None
     descripcion: Optional[str] = None
@@ -51,16 +52,16 @@ class EventUpdate(BaseModel):
     categoria_id: Optional[int] = None
     organizador_id: Optional[int] = None
 
-# Para que un estudiante califique un evento (1 a 5)
+# Para calificar un evento con estrellas
 class RatingCreate(BaseModel):
     evento_id: int
-    puntuacion: int = Field(..., ge=1, le=5, description="Calificación de 1 a 5 estrellas")
+    puntuacion: int = Field(..., ge=1, le=5)
 
-# Para publicar un comentario sobre un evento
+# Para dejar un comentario en un evento
 class CommentCreate(BaseModel):
     evento_id: int
-    texto: str = Field(..., min_length=2, max_length=500, description="Comentario sobre la experiencia")
+    texto: str = Field(..., min_length=2, max_length=500)
 
 # Para enviar una sugerencia al colegio
 class SuggestionCreate(BaseModel):
-    texto: str = Field(..., min_length=5, max_length=1000, description="Texto de la sugerencia o propuesta")
+    texto: str = Field(..., min_length=5, max_length=1000)

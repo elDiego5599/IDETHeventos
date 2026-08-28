@@ -1,166 +1,159 @@
 import os
-import sqlite3
 import bcrypt
+import psycopg2
+import psycopg2.extras
 from contextlib import contextmanager
+from dotenv import load_dotenv
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "eventos.db")
+# Cargamos las variables del archivo .env (donde está la URL de Supabase)
+load_dotenv()
+
+# Esta es la URL de conexión a Supabase, viene del archivo .env
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 
 @contextmanager
 def get_db():
-    """Abre la base de datos y la cierra al terminar.
+    # Esta funcion se encarga de conectarse a la base de datos de Supabase
+    # Si no hay URL configurada, avisamos que hay que configurar el .env
+    if not DATABASE_URL:
+        raise Exception("No se encontro DATABASE_URL. Revisa tu archivo .env y pon la URL de Supabase.")
 
-    Explicación simple: usar `with get_db()` nos da una conexión segura.
-    Si todo sale bien, guarda los cambios; si hay error, deshace los cambios.
-    """
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON;")
+    # Nos conectamos a Supabase. Usamos RealDictCursor para poder usar los datos como diccionario
+    conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
     try:
+        # Entregamos la conexion para que se pueda usar
         yield conn
+        # Si todo salio bien, guardamos los cambios
         conn.commit()
     except Exception:
+        # Si algo fallo, deshacemos los cambios
         conn.rollback()
         raise
     finally:
+        # Siempre cerramos la conexion al final
         conn.close()
 
+
 def hash_password(password: str) -> str:
-    # Crea un hash seguro para la contraseña.
-    # Explicación simple: no guardamos la contraseña literal, guardamos
-    # una versión difícil de leer para que nadie la copie.
+    # Esta funcion sirve para encriptar la contraseña antes de guardarla
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
-def init_db():
-    """Crea las tablas necesarias y pone datos de ejemplo.
 
-    Explicación simple: cuando arrancamos la aplicación por primera vez
-    necesitamos crear las tablas (usuarios, eventos, etc.) y algunos datos
-    de ejemplo para probar la app.
-    """
+def init_db():
+    # Esta funcion crea todas las tablas que necesita el proyecto si no existen
     with get_db() as conn:
         cursor = conn.cursor()
 
-        # 1. Usuarios
+        # Tabla de usuarios: aqui se guardan los estudiantes y administradores
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS usuarios (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
+            id SERIAL PRIMARY KEY,
+            nombre VARCHAR(100) NOT NULL,
+            email VARCHAR(100) UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
-            rol TEXT NOT NULL DEFAULT 'estudiante' CHECK(rol IN ('admin', 'estudiante'))
+            rol VARCHAR(20) NOT NULL DEFAULT 'estudiante' CHECK(rol IN ('admin', 'estudiante'))
         );
         """)
 
-        # 2. Categorias
+        # Tabla de categorias: los tipos de evento (Deportes, Cultura, etc.)
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS categorias (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT UNIQUE NOT NULL
+            id SERIAL PRIMARY KEY,
+            nombre VARCHAR(100) UNIQUE NOT NULL
         );
         """)
 
-        # 3. Ubicaciones
+        # Tabla de ubicaciones: los lugares del colegio donde se hacen los eventos
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS ubicaciones (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT UNIQUE NOT NULL
+            id SERIAL PRIMARY KEY,
+            nombre VARCHAR(100) UNIQUE NOT NULL
         );
         """)
 
-        # 4. Organizadores
+        # Tabla de organizadores: quien organiza cada evento
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS organizadores (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT UNIQUE NOT NULL
+            id SERIAL PRIMARY KEY,
+            nombre VARCHAR(100) UNIQUE NOT NULL
         );
         """)
 
-        # 5. Eventos
+        # Tabla de eventos: la tabla principal donde se guardan todos los eventos
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS eventos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            titulo TEXT NOT NULL,
+            id SERIAL PRIMARY KEY,
+            titulo VARCHAR(150) NOT NULL,
             descripcion TEXT,
-            fecha TEXT NOT NULL,
-            ubicacion_id INTEGER,
-            categoria_id INTEGER,
-            organizador_id INTEGER,
-            FOREIGN KEY (ubicacion_id) REFERENCES ubicaciones (id) ON DELETE SET NULL,
-            FOREIGN KEY (categoria_id) REFERENCES categorias (id) ON DELETE SET NULL,
-            FOREIGN KEY (organizador_id) REFERENCES organizadores (id) ON DELETE SET NULL
+            fecha TIMESTAMP NOT NULL,
+            ubicacion_id INTEGER REFERENCES ubicaciones(id) ON DELETE SET NULL,
+            categoria_id INTEGER REFERENCES categorias(id) ON DELETE SET NULL,
+            organizador_id INTEGER REFERENCES organizadores(id) ON DELETE SET NULL
         );
         """)
 
-        # 6. Inscripciones
+        # Tabla de inscripciones: para saber que estudiante se inscribio a que evento
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS inscripciones (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            usuario_id INTEGER NOT NULL,
-            evento_id INTEGER NOT NULL,
-            fecha_registro TEXT NOT NULL,
-            UNIQUE(usuario_id, evento_id),
-            FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE,
-            FOREIGN KEY (evento_id) REFERENCES eventos (id) ON DELETE CASCADE
+            id SERIAL PRIMARY KEY,
+            usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+            evento_id INTEGER NOT NULL REFERENCES eventos(id) ON DELETE CASCADE,
+            fecha_registro TIMESTAMP NOT NULL,
+            UNIQUE(usuario_id, evento_id)
         );
         """)
 
-        # 7. Calificaciones
+        # Tabla de calificaciones: las estrellas de 1 a 5 que deja cada estudiante
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS calificaciones (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            usuario_id INTEGER NOT NULL,
-            evento_id INTEGER NOT NULL,
-            puntuacion INTEGER NOT NULL CHECK(puntuacion >= 1 AND puntuacion <= 5),
-            UNIQUE(usuario_id, evento_id),
-            FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE,
-            FOREIGN KEY (evento_id) REFERENCES eventos (id) ON DELETE CASCADE
+            id SERIAL PRIMARY KEY,
+            usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+            evento_id INTEGER NOT NULL REFERENCES eventos(id) ON DELETE CASCADE,
+            puntuacion SMALLINT NOT NULL CHECK(puntuacion >= 1 AND puntuacion <= 5),
+            UNIQUE(usuario_id, evento_id)
         );
         """)
 
-        # 8. Comentarios
+        # Tabla de comentarios: lo que escriben los estudiantes sobre cada evento
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS comentarios (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            usuario_id INTEGER NOT NULL,
-            evento_id INTEGER NOT NULL,
+            id SERIAL PRIMARY KEY,
+            usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+            evento_id INTEGER NOT NULL REFERENCES eventos(id) ON DELETE CASCADE,
             texto TEXT NOT NULL,
-            fecha TEXT NOT NULL,
-            FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE,
-            FOREIGN KEY (evento_id) REFERENCES eventos (id) ON DELETE CASCADE
+            fecha TIMESTAMP NOT NULL
         );
         """)
 
-        # 9. Sugerencias
+        # Tabla de sugerencias: las ideas que mandan los estudiantes al colegio
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS sugerencias (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            usuario_id INTEGER NOT NULL,
+            id SERIAL PRIMARY KEY,
+            usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
             texto TEXT NOT NULL,
-            fecha TEXT NOT NULL,
-            FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE
+            fecha TIMESTAMP NOT NULL
         );
         """)
 
+        # Llenamos la base con algunos datos iniciales para que no este vacia
         seed_initial_data(conn)
 
-    print("Base de datos SQLite inicializada correctamente en:", DB_PATH)
+    print("Base de datos lista en Supabase")
+
 
 def seed_initial_data(conn):
-    """Agrega usuarios y listas (categorias, ubicaciones...) si no existen.
-
-    Explicación simple: pone un profesor y dos estudiantes, y ejemplos de
-    categorias, lugares y organizadores para que la aplicación tenga contenido.
-    """
+    # Esta funcion pone datos iniciales si las tablas estan vacias
     cursor = conn.cursor()
 
-    # 1. Usuarios
-    cursor.execute("SELECT COUNT(*) FROM usuarios")
-    if cursor.fetchone()[0] == 0:
+    # Creamos algunos usuarios de prueba si no hay ninguno
+    cursor.execute("SELECT COUNT(*) as total FROM usuarios")
+    if cursor.fetchone()["total"] == 0:
         admin_pass = hash_password("admin123")
         estudiante_pass = hash_password("estudiante123")
         cursor.executemany(
-            "INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES (?, ?, ?, ?)",
+            "INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES (%s, %s, %s, %s)",
             [
                 ("Profesor Admin", "admin@ideth.edu", admin_pass, "admin"),
                 ("Camila Rodriguez (11A)", "estudiante@ideth.edu", estudiante_pass, "estudiante"),
@@ -168,11 +161,11 @@ def seed_initial_data(conn):
             ]
         )
 
-    # 2. Categorias
-    cursor.execute("SELECT COUNT(*) FROM categorias")
-    if cursor.fetchone()[0] == 0:
+    # Creamos categorias si no hay ninguna
+    cursor.execute("SELECT COUNT(*) as total FROM categorias")
+    if cursor.fetchone()["total"] == 0:
         cursor.executemany(
-            "INSERT INTO categorias (nombre) VALUES (?)",
+            "INSERT INTO categorias (nombre) VALUES (%s)",
             [
                 ("Deportes",),
                 ("Ciencia y Tecnologia",),
@@ -182,11 +175,11 @@ def seed_initial_data(conn):
             ]
         )
 
-    # 3. Ubicaciones
-    cursor.execute("SELECT COUNT(*) FROM ubicaciones")
-    if cursor.fetchone()[0] == 0:
+    # Creamos ubicaciones si no hay ninguna
+    cursor.execute("SELECT COUNT(*) as total FROM ubicaciones")
+    if cursor.fetchone()["total"] == 0:
         cursor.executemany(
-            "INSERT INTO ubicaciones (nombre) VALUES (?)",
+            "INSERT INTO ubicaciones (nombre) VALUES (%s)",
             [
                 ("Cancha Multiple Principal",),
                 ("Auditorio Simon Bolivar",),
@@ -196,11 +189,11 @@ def seed_initial_data(conn):
             ]
         )
 
-    # 4. Organizadores
-    cursor.execute("SELECT COUNT(*) FROM organizadores")
-    if cursor.fetchone()[0] == 0:
+    # Creamos organizadores si no hay ninguno
+    cursor.execute("SELECT COUNT(*) as total FROM organizadores")
+    if cursor.fetchone()["total"] == 0:
         cursor.executemany(
-            "INSERT INTO organizadores (nombre) VALUES (?)",
+            "INSERT INTO organizadores (nombre) VALUES (%s)",
             [
                 ("Consejo Estudiantil 11",),
                 ("Area de Educacion Fisica",),
@@ -209,6 +202,7 @@ def seed_initial_data(conn):
                 ("Comite de Cultura",)
             ]
         )
+
 
 if __name__ == "__main__":
     init_db()

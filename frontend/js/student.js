@@ -1,25 +1,22 @@
-/**
- * student.js - Controlador del Dashboard de Estudiante
- */
-
+// Logica del panel del estudiante
 let currentEvent = null;
 let allEvents = [];
 
-// Cuando el estudiante entra al panel, verificamos su sesión y mostramos datos.
+// Cuando se carga la pagina revisamos que el usuario este logueado
 document.addEventListener('DOMContentLoaded', async () => {
   const user = AuthStorage.getUser();
-  // Si no está conectado, lo enviamos a iniciar sesión
+  // Si no esta logueado lo mandamos al login
   if (!AuthStorage.isLoggedIn() || !user) {
     window.location.href = '/login';
     return;
   }
-  // Si es profesor (admin), lo mandamos al panel de profesores
+  // Si es admin lo mandamos a su panel
   if (user.rol === 'admin') {
     window.location.href = '/admin';
     return;
   }
 
-  // Mostramos un saludo sencillo con el nombre del estudiante
+  // Mostramos el nombre del estudiante
   document.getElementById('welcome-title').textContent = `Hola, ${user.nombre}`;
   document.getElementById('student-badge-name').textContent = user.nombre;
 
@@ -30,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadData();
 });
 
+// Configura las pestañas para cambiar entre secciones
 function setupTabs() {
   const btns = document.querySelectorAll('.tab-btn');
   const panes = document.querySelectorAll('.tab-content');
@@ -46,10 +44,14 @@ function setupTabs() {
   });
 }
 
+// Carga los datos principales del panel
 async function loadData() {
-  await Promise.all([loadEvents(), loadMyInscriptions()]);
+  // Cargamos primero los eventos y luego las inscripciones
+  await loadEvents();
+  await loadMyInscriptions();
 }
 
+// Trae todos los eventos del backend
 async function loadEvents() {
   const container = document.getElementById('student-events-grid');
   if (!container) return;
@@ -64,9 +66,11 @@ async function loadEvents() {
   }
 }
 
+// Trae los eventos donde el estudiante esta inscrito
 async function loadMyInscriptions() {
   try {
     const events = await API.get('/api/inscripciones/mis-eventos');
+    // Actualizamos los contadores
     document.getElementById('stat-my-count').textContent = events.length;
     document.getElementById('badge-my-count').textContent = events.length;
 
@@ -110,6 +114,7 @@ async function loadMyInscriptions() {
   }
 }
 
+// Muestra las tarjetas de eventos en el cronograma
 function renderStudentEvents(events) {
   const container = document.getElementById('student-events-grid');
   if (!container) return;
@@ -155,6 +160,7 @@ function renderStudentEvents(events) {
   }).join('');
 }
 
+// Filtra los eventos por tipo (todos, proximos, pasados)
 function filterEvents(type, btn) {
   document.querySelectorAll('#tab-cronograma .filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -164,6 +170,7 @@ function filterEvents(type, btn) {
   else if (type === 'pasados') renderStudentEvents(allEvents.filter(e => e.es_pasado));
 }
 
+// Abre el modal con el detalle del evento y las opciones para calificar y comentar
 async function openStudentModal(id) {
   try {
     const e = await API.get(`/api/eventos/${id}`);
@@ -184,6 +191,7 @@ async function openStudentModal(id) {
     // Mostramos el botón para inscribirse o para cancelar, según el caso
       renderEnrollmentButton(e);
 
+    // Solo mostramos las estrellas y el formulario de comentarios si el evento ya paso
     const ratingBox = document.getElementById('star-rating-box');
     const ratingHint = document.getElementById('star-rating-hint');
     const commentFormBox = document.getElementById('comment-form-box');
@@ -206,6 +214,7 @@ async function openStudentModal(id) {
   }
 }
 
+// Muestra el boton de inscripcion segun si ya esta inscrito o no
 function renderEnrollmentButton(e) {
   const container = document.getElementById('modal-enroll-action');
   if (e.esta_inscrito) {
@@ -222,6 +231,7 @@ function renderEnrollmentButton(e) {
   }
 }
 
+// Inscribe al estudiante en el evento
 async function enrollInEvent(id) {
   try {
     const res = await API.post(`/api/inscripciones/${id}`);
@@ -233,6 +243,7 @@ async function enrollInEvent(id) {
   }
 }
 
+// Cancela la inscripcion a un evento
 async function cancelEnrollment(id) {
   if (!confirm('Deseas cancelar tu inscripcion a este evento?')) return;
   try {
@@ -245,10 +256,12 @@ async function cancelEnrollment(id) {
   }
 }
 
+// Configura las estrellas para calificar
 function setupStarRating() {
   const stars = document.querySelectorAll('.star-item');
   stars.forEach(star => {
     star.addEventListener('click', async () => {
+      // Solo se puede calificar si el evento ya paso
       if (!currentEvent || !currentEvent.es_pasado) return;
       const score = parseInt(star.dataset.val, 10);
       try {
@@ -266,6 +279,7 @@ function setupStarRating() {
   });
 }
 
+// Pinta las estrellas segun la calificacion
 function updateStarUI(score) {
   const stars = document.querySelectorAll('.star-item');
   stars.forEach(s => {
@@ -275,6 +289,7 @@ function updateStarUI(score) {
   });
 }
 
+// Muestra la lista de comentarios
 function renderComments(comments) {
   const container = document.getElementById('modal-comments-list');
   if (comments.length === 0) {
@@ -292,6 +307,7 @@ function renderComments(comments) {
   `).join('');
 }
 
+// Configura los formularios de comentarios y sugerencias
 function setupForms() {
   const cForm = document.getElementById('form-add-comment');
   if (cForm) {
@@ -315,6 +331,7 @@ function setupForms() {
     });
   }
 
+  // Formulario para enviar sugerencias al colegio
   const sForm = document.getElementById('form-suggestion');
   if (sForm) {
     sForm.addEventListener('submit', async (e) => {
