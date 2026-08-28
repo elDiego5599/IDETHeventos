@@ -1,10 +1,7 @@
-/**
- * app.js - Logica de la pagina principal
- */
-
+// Logica de la pagina principal (index)
 let allEvents = [];
 
-// Al abrir la página: mostramos información simple y pedimos los eventos.
+// Cuando se carga la pagina, actualizamos el menu y cargamos los eventos
 document.addEventListener('DOMContentLoaded', () => {
   // Muestra el nombre del usuario y opciones si está conectado
   updateNavbar();
@@ -14,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFilterButtons();
 });
 
-// Trae la lista de eventos públicos desde la API y renderiza.
+// Trae los eventos desde el backend y los muestra
 async function loadPublicEvents() {
   const container = document.getElementById('events-grid');
   if (!container) return;
@@ -30,7 +27,7 @@ async function loadPublicEvents() {
   }
 }
 
-// Dibuja tarjetas de evento en el grid a partir de un array de eventos.
+// Muestra las tarjetas de eventos en la pagina
 function renderEvents(events) {
   const container = document.getElementById('events-grid');
   if (!container) return;
@@ -77,7 +74,7 @@ function renderEvents(events) {
   }).join('');
 }
 
-// Configura los botones que filtran la vista principal (clase .main-filter-btn)
+// Configura los botones de filtro (Todos, Proximos, Pasados)
 function setupFilterButtons() {
   const btns = document.querySelectorAll('.main-filter-btn');
   // Cada botón pone su estado activo y filtra la lista para mostrar lo que pide
@@ -94,13 +91,13 @@ function setupFilterButtons() {
   });
 }
 
-// Abre el modal de detalle público para un evento dado. Muestra comentarios y acciones.
+// Abre el modal con el detalle completo de un evento
 async function openPublicEventDetail(id) {
   try {
     const e = await API.get(`/api/eventos/${id}`);
     document.getElementById('modal-detail-title').textContent = e.titulo;
 
-    // Mostramos los comentarios si existen, si no, un texto explicativo
+    // Preparamos los comentarios para mostrarlos
     const commentsHtml = e.comentarios && e.comentarios.length > 0
       ? e.comentarios.map(c => `
           <div class="comment-item">
@@ -130,8 +127,7 @@ async function openPublicEventDetail(id) {
       <div class="modal-comments-box">${commentsHtml}</div>
     `;
 
-    // Si el estudiante está conectado, mostramos un enlace a su panel;
-    // si no, le pedimos que inicie sesión.
+    // Si ya esta logueado lo mandamos a su panel, si no lo invitamos a loguearse
     const actionContainer = document.getElementById('modal-detail-action');
     if (AuthStorage.isLoggedIn()) {
       const user = AuthStorage.getUser();
