@@ -23,8 +23,8 @@ Portal web sencillo para eventos escolares del Colegio IDETH. Hecho por estudian
 ## Tecnologias
 
 - **Frontend:** HTML5, CSS3 y JavaScript puro.
-- **Backend:** Python con FastAPI y Uvicorn.
-- **Base de Datos:** PostgreSQL en Supabase.
+- **Backend:** Python con Flask.
+- **Base de Datos:** PostgreSQL en Supabase (con respaldo local en SQLite).
 - **Autenticacion:** JWT y bcrypt para las contraseñas.
 
 ---
@@ -35,9 +35,9 @@ Portal web sencillo para eventos escolares del Colegio IDETH. Hecho por estudian
 IDETHeventos/
 ├── backend/
 │   ├── database.py       # Conexion a Supabase y creacion de tablas
-│   ├── models.py         # Validacion de datos con Pydantic
-│   ├── auth.py           # Login, tokens y permisos
-│   └── main.py           # Servidor FastAPI con todos los endpoints
+│   ├── models.py         # Validacion manual de los datos que llegan
+│   ├── auth.py           # Login, tokens JWT y permisos (admin / estudiante)
+│   └── main.py           # Servidor Flask con todos los endpoints
 ├── frontend/
 │   ├── index.html        # Pagina principal
 │   ├── login.html        # Pagina de inicio de sesion
@@ -86,7 +86,7 @@ pip install -r requirements.txt
 ### 3. Iniciar el servidor
 
 ```bash
-uvicorn backend.main:app --reload
+python backend/main.py
 ```
 
 ### 4. Abrir en el navegador
