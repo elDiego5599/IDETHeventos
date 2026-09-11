@@ -28,35 +28,11 @@
   <section class="hero">
     <div class="container">
       <img src="/static/img/logoColegio.jpeg" alt="Logo Colegio IDETH" class="hero-logo-img">
-      <h1 class="hero-title">Portal de Eventos del Colegio</h1>
-      <p class="hero-subtitle">Para que todos se enteren de los eventos del colegio y participen en las actividades escolares.</p>
+      <h1 class="hero-title">Eventos Colegio IDETH</h1>
+      <p class="hero-subtitle">Enterate de todas las actividades escolares y participa.</p>
       <div class="hero-actions">
         <a href="#eventos" class="btn btn-primary btn-lg">Ver Eventos</a>
         <a href="/register" class="btn btn-secondary btn-lg">Crear Cuenta</a>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-title">Para los estudiantes del colegio</h2>
-        <p class="section-subtitle">Todo lo que puedes hacer en la plataforma</p>
-      </div>
-
-      <div class="features-grid">
-        <div class="feature-card">
-          <h3>Cronograma al dia</h3>
-          <p>Conoce las fechas, horarios y lugares de todas las actividades escolares.</p>
-        </div>
-        <div class="feature-card">
-          <h3>Inscripcion rapida</h3>
-          <p>Inscribete a torneos, ferias y talleres en un solo paso.</p>
-        </div>
-        <div class="feature-card">
-          <h3>Califica y opina</h3>
-          <p>Califica las actividades, deja tus comentarios y envia sugerencias al colegio.</p>
-        </div>
       </div>
     </div>
   </section>
@@ -68,25 +44,19 @@
         <p class="section-subtitle">Actividades programadas en el colegio</p>
       </div>
 
+      <div class="search-bar-wrap">
+        <input type="text" id="main-search-input" class="search-input" placeholder="Buscar evento por nombre, deporte, arte...">
+      </div>
+
       <div class="filters-bar">
         <button class="filter-btn main-filter-btn active" data-filter="todos">Todos</button>
         <button class="filter-btn main-filter-btn" data-filter="proximos">Proximos</button>
+        <button class="filter-btn main-filter-btn" data-filter="activos">En Vivo / Hoy</button>
         <button class="filter-btn main-filter-btn" data-filter="pasados">Pasados</button>
       </div>
 
       <div class="events-grid" id="events-grid">
         <!-- Eventos renderizados por app.js -->
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <div class="about-box">
-        <h2 class="section-title about-title">Sobre el portal</h2>
-        <p class="section-subtitle">
-          Creamos este espacio para que todos los estudiantes del colegio se enteren de las actividades escolares y puedan participar facilmente.
-        </p>
       </div>
     </div>
   </section>

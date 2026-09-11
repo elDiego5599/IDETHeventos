@@ -1,14 +1,13 @@
 // Logica de la pagina principal (index)
 let allEvents = [];
+let currentFilter = 'todos';
 
 // Cuando se carga la pagina, actualizamos el menu y cargamos los eventos
 document.addEventListener('DOMContentLoaded', () => {
-  // Muestra el nombre del usuario y opciones si está conectado
   updateNavbar();
-  // Trae la lista de eventos para que los estudiantes la vean
   loadPublicEvents();
-  // Prepara los botones que permiten filtrar la lista (Todos/Próximos/Pasados)
   setupFilterButtons();
+  setupSearchInput();
 });
 
 // Trae los eventos desde el backend y los muestra
@@ -18,55 +17,112 @@ async function loadPublicEvents() {
 
   try {
     const events = await API.get('/api/eventos');
-    // Guardamos los eventos en memoria para que los filtros sean rápidos
     allEvents = events;
-    renderEvents(events);
+    applyCurrentFilters();
   } catch (err) {
-    // Si falla, mostramos un mensaje fácil de entender
     container.innerHTML = `<div class="empty-state">No se pudo cargar la lista de eventos.</div>`;
   }
 }
 
-// Muestra las tarjetas de eventos en la pagina
+// Filtra y busca eventos en tiempo real
+function applyCurrentFilters() {
+  const searchVal = (document.getElementById('main-search-input')?.value || '').toLowerCase().trim();
+
+  let filtered = allEvents;
+
+  // Filtro por estado
+  if (currentFilter === 'proximos') {
+    filtered = filtered.filter(e => e.estado === 'proximo' || (!e.es_pasado && e.estado !== 'activo'));
+  } else if (currentFilter === 'activos') {
+    filtered = filtered.filter(e => e.estado === 'activo');
+  } else if (currentFilter === 'pasados') {
+    filtered = filtered.filter(e => e.es_pasado || e.estado === 'pasado');
+  }
+
+  // Buscador por texto en tiempo real
+  if (searchVal) {
+    filtered = filtered.filter(e =>
+      (e.titulo && e.titulo.toLowerCase().includes(searchVal)) ||
+      (e.descripcion && e.descripcion.toLowerCase().includes(searchVal)) ||
+      (e.frase_motivacional && e.frase_motivacional.toLowerCase().includes(searchVal)) ||
+      (e.ubicacion_nombre && e.ubicacion_nombre.toLowerCase().includes(searchVal)) ||
+      (e.categoria_nombre && e.categoria_nombre.toLowerCase().includes(searchVal))
+    );
+  }
+
+  renderEvents(filtered);
+}
+
+function setupSearchInput() {
+  const input = document.getElementById('main-search-input');
+  if (input) {
+    input.addEventListener('input', () => applyCurrentFilters());
+  }
+}
+
+// Imagen por defecto del colegio si el evento no tiene foto
+function getEventThumbnail(url) {
+  if (!url || !url.trim()) return '/static/img/cancha_futbol_ideth.jpeg';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('/static/')) return url;
+  if (url.startsWith('/')) return url;
+  return '/static/' + url;
+}
+
+// Muestra las tarjetas de eventos de forma limpia y sin exceso de texto
 function renderEvents(events) {
   const container = document.getElementById('events-grid');
   if (!container) return;
 
   if (events.length === 0) {
-    // Mensaje claro para los estudiantes cuando no hay eventos
-    container.innerHTML = `<div class="empty-state">No hay eventos publicados en este momento.</div>`;
+    container.innerHTML = `<div class="empty-state">No se encontraron eventos con este criterio de busqueda.</div>`;
     return;
   }
 
-  // Construimos HTML para cada evento (título, fecha, lugar, estado, calificación)
   container.innerHTML = events.map(e => {
-    const statusBadge = e.es_pasado
-      ? '<span class="badge badge-past">Finalizado</span>'
-      : '<span class="badge badge-upcoming">Proximo</span>';
+    let statusBadge = '<span class="badge badge-upcoming">Proximo</span>';
+    if (e.estado === 'activo') {
+      statusBadge = '<span class="badge badge-active">En Vivo / Hoy</span>';
+    } else if (e.es_pasado || e.estado === 'pasado') {
+      statusBadge = '<span class="badge badge-past">Finalizado</span>';
+    }
 
-    const categoryBadge = `<span class="badge badge-category">${e.categoria_nombre || 'General'}</span>`;
+    const volunteerBadge = e.permite_voluntarios
+      ? '<span class="badge badge-volunteer">Voluntariado</span>'
+      : '';
 
-    const ratingText = e.calificacion_promedio
-      ? `Calificacion: ${e.calificacion_promedio}/5 (${e.total_calificaciones})`
-      : 'Aun no tiene calificaciones';
+    const categoryBadge = `<span class="badge badge-category">${e.categoria_nombre || 'Deportes'}</span>`;
+    const photoUrl = getEventThumbnail(e.imagen_url);
+
+    const mottoHtml = e.frase_motivacional
+      ? `<div style="font-style: italic; color: #b45309; font-size: 0.84rem; margin-bottom: 8px;">"${e.frase_motivacional}"</div>`
+      : '';
 
     return `
       <div class="event-card">
+        <div class="event-card-img-wrap">
+          <img src="${photoUrl}" alt="${e.titulo}" class="event-card-img" onerror="this.src='/static/img/cancha_futbol_ideth.jpeg'">
+        </div>
         <div class="event-card-header">
           ${categoryBadge}
-          ${statusBadge}
+          <div style="display: flex; gap: 4px; align-items: center;">
+            ${volunteerBadge}
+            ${statusBadge}
+          </div>
         </div>
         <div class="event-card-body">
           <h3 class="event-card-title">${e.titulo}</h3>
-          <p class="event-card-desc">${e.descripcion || 'Sin descripcion.'}</p>
+          ${mottoHtml}
+          <p class="event-card-desc">${e.descripcion || 'Actividad deportiva escolar.'}</p>
           <div class="event-meta">
+            <div><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Cancha Principal'}</div>
             <div><strong>Fecha:</strong> ${e.fecha}</div>
-            <div><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Por confirmar'}</div>
-            <div><strong>Organiza:</strong> ${e.organizador_nombre || 'Colegio IDETH'}</div>
           </div>
         </div>
         <div class="event-card-footer">
-          <span style="font-size: 0.8rem; color: var(--text-muted);">${ratingText}</span>
+          <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">
+            ${e.total_inscritos || 0} inscritos
+          </span>
           <button onclick="openPublicEventDetail(${e.id})" class="btn btn-outline btn-sm">Ver Detalle</button>
         </div>
       </div>
@@ -74,19 +130,15 @@ function renderEvents(events) {
   }).join('');
 }
 
-// Configura los botones de filtro (Todos, Proximos, Pasados)
+// Configura los botones de filtro
 function setupFilterButtons() {
   const btns = document.querySelectorAll('.main-filter-btn');
-  // Cada botón pone su estado activo y filtra la lista para mostrar lo que pide
   btns.forEach(b => {
     b.addEventListener('click', () => {
       btns.forEach(x => x.classList.remove('active'));
       b.classList.add('active');
-
-      const f = b.dataset.filter;
-      if (f === 'todos') renderEvents(allEvents);
-      else if (f === 'proximos') renderEvents(allEvents.filter(e => !e.es_pasado));
-      else if (f === 'pasados') renderEvents(allEvents.filter(e => e.es_pasado));
+      currentFilter = b.dataset.filter || 'todos';
+      applyCurrentFilters();
     });
   });
 }
@@ -97,47 +149,55 @@ async function openPublicEventDetail(id) {
     const e = await API.get(`/api/eventos/${id}`);
     document.getElementById('modal-detail-title').textContent = e.titulo;
 
-    // Preparamos los comentarios para mostrarlos
-    const commentsHtml = e.comentarios && e.comentarios.length > 0
-      ? e.comentarios.map(c => `
-          <div class="comment-item">
-            <div class="comment-header">
-              <span class="comment-author">${c.autor_nombre}</span>
-              <span class="comment-date">${c.fecha}</span>
-            </div>
-            <p class="comment-text">${c.texto}</p>
-          </div>
-        `).join('')
-      : '<p style="color: var(--text-muted); font-size: 0.85rem;">Aun no hay comentarios.</p>';
+    const photoUrl = getEventThumbnail(e.imagen_url);
+
+    // Badges
+    let statusBadge = '<span class="badge badge-upcoming">Proximo</span>';
+    if (e.estado === 'activo') {
+      statusBadge = '<span class="badge badge-active">En Vivo / Hoy</span>';
+    } else if (e.es_pasado || e.estado === 'pasado') {
+      statusBadge = '<span class="badge badge-past">Finalizado</span>';
+    }
+
+    const volunteerBadge = e.permite_voluntarios
+      ? '<span class="badge badge-volunteer">Voluntariado</span>'
+      : '';
+
+    const mottoHtml = e.frase_motivacional
+      ? `<div style="font-style: italic; color: #b45309; font-size: 0.9rem; margin-bottom: 12px; text-align: center;">"${e.frase_motivacional}"</div>`
+      : '';
+
+    const summaryHtml = (e.es_pasado || e.estado === 'pasado') && e.resumen_pasado
+      ? `<div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 10px 14px; border-radius: 6px; font-size: 0.88rem; color: #166534; margin-bottom: 14px;"><strong>Resumen:</strong> ${e.resumen_pasado}</div>`
+      : '';
 
     document.getElementById('modal-detail-body').innerHTML = `
-      <div class="modal-badges">
-        <span class="badge badge-category">${e.categoria_nombre || 'General'}</span>
-        ${e.es_pasado ? '<span class="badge badge-past">Finalizado</span>' : '<span class="badge badge-upcoming">Proximo</span>'}
+      <img src="${photoUrl}" alt="${e.titulo}" class="modal-event-cover" onerror="this.src='/static/img/cancha_futbol_ideth.jpeg'">
+      <div class="modal-badges" style="margin-bottom: 8px;">
+        <span class="badge badge-category">${e.categoria_nombre || 'Deportes'}</span>
+        ${statusBadge}
+        ${volunteerBadge}
       </div>
-      <p class="modal-desc">${e.descripcion || 'Sin descripcion.'}</p>
-      <div class="event-meta">
+      ${mottoHtml}
+      ${summaryHtml}
+      <p style="font-size: 0.92rem; color: var(--text-dark); line-height: 1.5; margin-bottom: 14px;">${e.descripcion || 'Actividad deportiva escolar.'}</p>
+      <div class="event-meta" style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+        <div><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Cancha Principal'}</div>
         <div><strong>Fecha:</strong> ${e.fecha}</div>
-        <div><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Por confirmar'}</div>
-        <div><strong>Organiza:</strong> ${e.organizador_nombre || 'Colegio IDETH'}</div>
-        <div><strong>Inscritos:</strong> ${e.total_inscritos} estudiantes</div>
-        <div><strong>Calificacion promedio:</strong> ${e.calificacion_promedio ? `${e.calificacion_promedio} / 5 (${e.total_calificaciones} votos)` : 'Sin votos'}</div>
+        <div><strong>Inscritos:</strong> ${e.total_inscritos || 0} estudiantes</div>
       </div>
-      <h4 class="modal-section-title">Comentarios de estudiantes</h4>
-      <div class="modal-comments-box">${commentsHtml}</div>
     `;
 
-    // Si ya esta logueado lo mandamos a su panel, si no lo invitamos a loguearse
     const actionContainer = document.getElementById('modal-detail-action');
     if (AuthStorage.isLoggedIn()) {
       const user = AuthStorage.getUser();
-      actionContainer.innerHTML = `<a href="${user.rol === 'admin' ? '/admin' : '/dashboard'}" class="btn btn-primary btn-sm">Ir a mi panel</a>`;
+      actionContainer.innerHTML = `<a href="${user.rol === 'admin' ? '/admin' : '/dashboard'}" class="btn btn-primary btn-sm">Ir a mi panel de ${user.rol === 'admin' ? 'Administrador' : 'Estudiante'}</a>`;
     } else {
-      actionContainer.innerHTML = `<a href="/login" class="btn btn-primary btn-sm">Iniciar sesion para participar</a>`;
+      actionContainer.innerHTML = `<a href="/login" class="btn btn-primary btn-sm">Iniciar sesion para inscribirse u opinar</a>`;
     }
 
     openModal('event-detail-modal');
   } catch (err) {
-    showToast('Error al cargar detalle del evento', 'error');
+    showToast('No se pudo cargar el detalle del evento', 'error');
   }
 }

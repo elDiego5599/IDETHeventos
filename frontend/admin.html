@@ -51,6 +51,14 @@
         <div class="stat-info-label">Inscripciones</div>
       </div>
       <div class="stat-card">
+        <div class="stat-info-number" id="stat-problems">0</div>
+        <div class="stat-info-label">Problemas Reportados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info-number" id="stat-surveys">0</div>
+        <div class="stat-info-label">Encuestas</div>
+      </div>
+      <div class="stat-card">
         <div class="stat-info-number" id="stat-suggestions">0</div>
         <div class="stat-info-label">Sugerencias</div>
       </div>
@@ -61,6 +69,8 @@
       <button class="tab-btn active tab-admin-btn" data-tab="tab-admin-eventos">Eventos</button>
       <button class="tab-btn tab-admin-btn" data-tab="tab-admin-catalogos">Catalogos</button>
       <button class="tab-btn tab-admin-btn" data-tab="tab-admin-usuarios">Usuarios</button>
+      <button class="tab-btn tab-admin-btn" data-tab="tab-admin-problemas">Problemas Reportados</button>
+      <button class="tab-btn tab-admin-btn" data-tab="tab-admin-encuestas">Encuestas</button>
       <button class="tab-btn tab-admin-btn" data-tab="tab-admin-sugerencias">Sugerencias</button>
     </div>
 
@@ -71,10 +81,11 @@
           <thead>
             <tr>
               <th>ID</th>
+              <th>Portada</th>
               <th>Titulo</th>
               <th>Fecha</th>
-              <th>Categoria</th>
-              <th>Ubicacion</th>
+              <th>Zona / Lugar</th>
+              <th>Voluntariado</th>
               <th>Inscritos</th>
               <th>Acciones</th>
             </tr>
@@ -105,12 +116,12 @@
         <!-- Ubicaciones -->
         <div class="catalog-card">
           <div class="catalog-card-header">
-            <h3 class="catalog-card-title">Ubicaciones</h3>
+            <h3 class="catalog-card-title">Zonas y Ubicaciones</h3>
             <span class="badge badge-category" id="count-locs">0</span>
           </div>
           <ul class="catalog-list" id="list-locs"></ul>
           <form class="catalog-form" id="form-add-loc">
-            <input type="text" id="input-loc" class="form-control" placeholder="Nueva ubicacion..." required minlength="2">
+            <input type="text" id="input-loc" class="form-control" placeholder="Nueva zona (ej: Cancha)..." required minlength="2">
             <button type="submit" class="btn btn-primary btn-sm">Agregar</button>
           </form>
         </div>
@@ -150,6 +161,29 @@
       </div>
     </div>
 
+    <!-- Pestaña Problemas Reportados -->
+    <div class="admin-tab-pane" id="tab-admin-problemas">
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 14px;">
+        Inconvenientes y dificultades reportados por los estudiantes en los eventos para mejorar la convivencia y logistica del colegio.
+      </p>
+      <div id="admin-problems-container">
+        <!-- Renderizado por admin.js -->
+      </div>
+    </div>
+
+    <!-- Pestaña Encuestas -->
+    <div class="admin-tab-pane" id="tab-admin-encuestas">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <p style="color: var(--text-muted); font-size: 0.88rem;">
+          Encuestas de opinion para conocer la percepcion de los estudiantes con preguntas cerradas y abiertas.
+        </p>
+        <button onclick="openCreateSurveyModal()" class="btn btn-primary btn-sm">Nueva Encuesta</button>
+      </div>
+      <div id="admin-surveys-container">
+        <!-- Renderizado por admin.js -->
+      </div>
+    </div>
+
     <!-- Pestaña Sugerencias -->
     <div class="admin-tab-pane" id="tab-admin-sugerencias">
       <div id="admin-suggestions-container">
@@ -168,42 +202,182 @@
       <form id="form-event-admin">
         <div class="modal-body">
           <input type="hidden" id="event-id">
+
           <div class="form-group">
             <label class="form-label" for="event-titulo">Titulo del Evento</label>
-            <input type="text" id="event-titulo" class="form-control" placeholder="Ej: Torneo de Microfutbol" required minlength="3">
+            <input type="text" id="event-titulo" class="form-control" placeholder="Ej: Torneo de Microfutbol Intercursos" required minlength="3">
           </div>
+
           <div class="form-group">
-            <label class="form-label" for="event-desc">Descripcion</label>
-            <textarea id="event-desc" class="form-control" rows="3" placeholder="Detalles de la actividad..."></textarea>
+            <label class="form-label" for="event-motto">Frase Motivacional para los Estudiantes</label>
+            <input type="text" id="event-motto" class="form-control" placeholder="Ej: El talento gana partidos, el trabajo en equipo gana campeonatos">
+            <span class="form-hint">Una frase inspiradora para incitar a que los estudiantes asistan o participen.</span>
           </div>
+
+          <!-- Portada y Miniatura -->
+          <div class="form-group">
+            <label class="form-label">Foto de Portada / Miniatura</label>
+            <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+              <input type="text" id="event-img-url" class="form-control" placeholder="Pega la URL de una foto o sube un archivo">
+              <label class="btn btn-secondary btn-sm" style="white-space: nowrap; cursor: pointer;">
+                Subir Foto
+                <input type="file" id="event-img-file" accept="image/*" style="display: none;" onchange="uploadEventImage(this)">
+              </label>
+            </div>
+            <div class="photo-presets-grid">
+              <span style="font-size: 0.74rem; color: var(--text-muted); align-self: center;">Fotos sugeridas:</span>
+              <button type="button" class="photo-preset-btn" onclick="setPresetPhoto('futbol')">Cancha IDETH 1 (Recomendada)</button>
+              <button type="button" class="photo-preset-btn" onclick="setPresetPhoto('cancha2')">Cancha IDETH 2</button>
+              <button type="button" class="photo-preset-btn" onclick="setPresetPhoto('ciencia')">Ciencia / Robotica</button>
+              <button type="button" class="photo-preset-btn" onclick="setPresetPhoto('literatura')">Poesia / Cuentos</button>
+              <button type="button" class="photo-preset-btn" onclick="setPresetPhoto('arte')">Arte y Pintura</button>
+              <button type="button" class="photo-preset-btn" onclick="setPresetPhoto('auditorio')">Auditorio</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="event-desc">Descripcion de la Actividad</label>
+            <textarea id="event-desc" class="form-control" rows="3" placeholder="Detalla de que trata el evento escolar..."></textarea>
+          </div>
+
           <div class="form-group">
             <label class="form-label" for="event-fecha">Fecha y Hora</label>
             <input type="datetime-local" id="event-fecha" class="form-control" required>
           </div>
+
+          <div class="form-group">
+            <label class="form-label" for="event-loc">Zona en la que se realizara</label>
+            <select id="event-loc" class="form-control" required>
+              <option value="">Selecciona zona escolar (cancha, auditorio, quiosco)...</option>
+            </select>
+          </div>
+
           <div class="form-group">
             <label class="form-label" for="event-cat">Categoria</label>
             <select id="event-cat" class="form-control" required>
               <option value="">Selecciona categoria...</option>
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="event-loc">Ubicacion</label>
-            <select id="event-loc" class="form-control" required>
-              <option value="">Selecciona ubicacion...</option>
-            </select>
-          </div>
+
           <div class="form-group">
             <label class="form-label" for="event-org">Organizador</label>
             <select id="event-org" class="form-control" required>
               <option value="">Selecciona organizador...</option>
             </select>
           </div>
+
+          <!-- Condicional de Participación Voluntaria -->
+          <div class="form-group" style="background: #f8fafc; padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--border);">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer;">
+              <input type="checkbox" id="event-volunteers" style="width: 16px; height: 16px;">
+              Permitir inscripcion de participantes activos / voluntarios
+            </label>
+            <span class="form-hint" style="display: block; margin-top: 4px;">
+              Activalo si el evento necesita que los estudiantes presenten poemas, cuentos, bailes, arbitren o apoyen como staff.
+            </span>
+          </div>
+
+          <!-- Resumen de lo que fue el evento -->
+          <div class="form-group">
+            <label class="form-label" for="event-summary">Resumen de lo que fue el evento (Para eventos pasados)</label>
+            <textarea id="event-summary" class="form-control" rows="2" placeholder="Escribe quien gano, resultados o logros destacados de la actividad..."></textarea>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('event-form-modal')">Cancelar</button>
-          <button type="submit" class="btn btn-primary btn-sm" id="btn-save-event">Guardar</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-save-event">Guardar Evento</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal Ver Lista de Inscritos por Evento -->
+  <div class="modal-overlay" id="event-inscriptions-modal">
+    <div class="modal-container" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="inscriptions-modal-title">Estudiantes Inscritos</h3>
+        <button class="modal-close" onclick="closeModal('event-inscriptions-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Estudiante</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Propuesta / Presentacion</th>
+              </tr>
+            </thead>
+            <tbody id="inscriptions-tbody">
+              <!-- Renderizado dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('event-inscriptions-modal')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Crear Encuesta Escolar -->
+  <div class="modal-overlay" id="survey-form-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Publicar Encuesta Escolar</h3>
+        <button class="modal-close" onclick="closeModal('survey-form-modal')">&times;</button>
+      </div>
+      <form id="form-survey-admin">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Evento Escolar</label>
+            <select id="survey-event-id" class="form-control" required>
+              <option value="">Selecciona el evento...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Titulo de la Encuesta</label>
+            <input type="text" id="survey-title" class="form-control" placeholder="Ej: Encuesta de satisfaccion sobre el Torneo" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pregunta Cerrada 1</label>
+            <input type="text" id="survey-q1" class="form-control" value="¿Como calificarias la organizacion y puntualidad del evento?" required>
+            <label class="form-label" style="font-size: 0.76rem; margin-top: 4px;">Opciones separadas por coma:</label>
+            <input type="text" id="survey-opt1" class="form-control" value="Excelente,Buena,Regular,Mala" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pregunta Cerrada 2 (Opcional)</label>
+            <input type="text" id="survey-q2" class="form-control" value="¿Te gustaria volver a participar en una actividad similar?">
+            <label class="form-label" style="font-size: 0.76rem; margin-top: 4px;">Opciones separadas por coma:</label>
+            <input type="text" id="survey-opt2" class="form-control" value="Si,Tal vez,No">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pregunta Abierta (Para expresarse libremente)</label>
+            <input type="text" id="survey-qopen" class="form-control" value="¿Que sugerencias o ideas tienes para mejorar la proxima vez?" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('survey-form-modal')">Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-sm">Publicar Encuesta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Ver Resultados de Encuesta -->
+  <div class="modal-overlay" id="survey-results-modal">
+    <div class="modal-container" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="survey-results-title">Resultados de Encuesta</h3>
+        <button class="modal-close" onclick="closeModal('survey-results-modal')">&times;</button>
+      </div>
+      <div class="modal-body" id="survey-results-body">
+        <!-- Renderizado dinamicamente -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('survey-results-modal')">Cerrar</button>
+      </div>
     </div>
   </div>
 

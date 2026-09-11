@@ -87,7 +87,11 @@ const API = {
 // Abre un modal (ventana emergente)
 function openModal(id) {
   const m = document.getElementById(id);
-  if (m) m.classList.add('active');
+  if (!m) return;
+  m.classList.add('active');
+  m.onclick = (event) => {
+    if (event.target === m) closeModal(id);
+  };
 }
 
 // Cierra un modal

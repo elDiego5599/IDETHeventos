@@ -24,7 +24,7 @@ Portal web sencillo para eventos escolares del Colegio IDETH. Hecho por estudian
 
 - **Frontend:** HTML5, CSS3 y JavaScript puro.
 - **Backend:** Python con Flask.
-- **Base de Datos:** PostgreSQL en Supabase (con respaldo local en SQLite).
+- **Base de Datos:** PostgreSQL administrado desde pgAdmin 4.
 - **Autenticacion:** JWT y bcrypt para las contraseñas.
 
 ---
@@ -34,7 +34,7 @@ Portal web sencillo para eventos escolares del Colegio IDETH. Hecho por estudian
 ```text
 IDETHeventos/
 ├── backend/
-│   ├── database.py       # Conexion a Supabase y creacion de tablas
+│   ├── database.py       # Conexion a PostgreSQL y creacion de tablas
 │   ├── models.py         # Validacion manual de los datos que llegan
 │   ├── auth.py           # Login, tokens JWT y permisos (admin / estudiante)
 │   └── main.py           # Servidor Flask con todos los endpoints
@@ -54,7 +54,7 @@ IDETHeventos/
 │       ├── app.js
 │       ├── student.js
 │       └── admin.js
-├── .env.example          # Ejemplo de configuracion para Supabase
+├── .env                  # Configuracion local (no se versiona)
 ├── requirements.txt
 └── README.md
 ```
@@ -63,18 +63,14 @@ IDETHeventos/
 
 ## Como iniciar el proyecto
 
-### 1. Configurar Supabase
+### 1. Configurar PostgreSQL
 
-1. Entra a [supabase.com](https://supabase.com) y crea un proyecto gratis.
-2. Ve a Project Settings -> Database -> Connection string (URI) y copia la URL.
-3. En la carpeta del proyecto crea un archivo `.env` a partir del ejemplo:
-   ```bash
-   cp .env.example .env
+1. Crea la base `eventos_ideth` en PostgreSQL usando pgAdmin 4.
+2. Ejecuta `eventos_ideth_compatible.sql` en esa base.
+3. Abre el archivo `.env` y configura:
    ```
-4. Abre el archivo `.env` y pega tu URL:
-   ```
-   DATABASE_URL=postgresql://postgres:TU_PASSWORD@db.TU_PROYECTO.supabase.co:5432/postgres
-   JWT_SECRET=clave-secreta-ideth-2026
+   DATABASE_URL=postgresql://postgres:TU_PASSWORD@localhost:5432/eventos_ideth
+   JWT_SECRET=una-clave-local
    ```
 
 ### 2. Instalar dependencias
@@ -86,7 +82,7 @@ pip install -r requirements.txt
 ### 3. Iniciar el servidor
 
 ```bash
-python backend/main.py
+python3 backend/main.py
 ```
 
 ### 4. Abrir en el navegador

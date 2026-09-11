@@ -65,7 +65,7 @@ def _usuario_desde_token():
 
 def login_requerido(f):
     # Decorador que obliga a haber iniciado sesion.
-    # Si no hay token valido, responde 401 como lo hacia FastAPI.
+    # Si no hay token valido, responde 401 como espera la API.
     @wraps(f)
     def decorada(*args, **kwargs):
         usuario = _usuario_desde_token()
