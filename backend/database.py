@@ -5,33 +5,29 @@ import psycopg2.extras
 from contextlib import contextmanager
 from dotenv import load_dotenv
 
-# Cargamos las variables del archivo .env (donde está la URL de Supabase)
+# Cargamos las variables del archivo .env.
 load_dotenv()
 
-# Esta es la URL de conexión a Supabase, viene del archivo .env
+# URL de conexión al servidor PostgreSQL local o remoto.
 DATABASE_URL = os.getenv("DATABASE_URL")
-
 
 @contextmanager
 def get_db():
-    # Esta funcion se encarga de conectarse a la base de datos de Supabase
-    # Si no hay URL configurada, avisamos que hay que configurar el .env
     if not DATABASE_URL:
-        raise Exception("No se encontro DATABASE_URL. Revisa tu archivo .env y pon la URL de Supabase.")
+        raise RuntimeError("DATABASE_URL no esta configurada en .env")
+    conn = psycopg2.connect(
+        DATABASE_URL,
+        cursor_factory=psycopg2.extras.RealDictCursor,
+        connect_timeout=5,
+    )
 
-    # Nos conectamos a Supabase. Usamos RealDictCursor para poder usar los datos como diccionario
-    conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
     try:
-        # Entregamos la conexion para que se pueda usar
         yield conn
-        # Si todo salio bien, guardamos los cambios
         conn.commit()
     except Exception:
-        # Si algo fallo, deshacemos los cambios
         conn.rollback()
         raise
     finally:
-        # Siempre cerramos la conexion al final
         conn.close()
 
 
@@ -90,9 +86,19 @@ def init_db():
             fecha TIMESTAMP NOT NULL,
             ubicacion_id INTEGER REFERENCES ubicaciones(id) ON DELETE SET NULL,
             categoria_id INTEGER REFERENCES categorias(id) ON DELETE SET NULL,
-            organizador_id INTEGER REFERENCES organizadores(id) ON DELETE SET NULL
+            organizador_id INTEGER REFERENCES organizadores(id) ON DELETE SET NULL,
+            imagen_url TEXT,
+            frase_motivacional VARCHAR(255),
+            permite_voluntarios BOOLEAN DEFAULT FALSE,
+            resumen_pasado TEXT
         );
         """)
+
+        # Agregamos las columnas a eventos por si la tabla ya habia sido creada previamente
+        cursor.execute("ALTER TABLE eventos ADD COLUMN IF NOT EXISTS imagen_url TEXT;")
+        cursor.execute("ALTER TABLE eventos ADD COLUMN IF NOT EXISTS frase_motivacional VARCHAR(255);")
+        cursor.execute("ALTER TABLE eventos ADD COLUMN IF NOT EXISTS permite_voluntarios BOOLEAN DEFAULT FALSE;")
+        cursor.execute("ALTER TABLE eventos ADD COLUMN IF NOT EXISTS resumen_pasado TEXT;")
 
         # Tabla de inscripciones: para saber que estudiante se inscribio a que evento
         cursor.execute("""
@@ -101,9 +107,15 @@ def init_db():
             usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
             evento_id INTEGER NOT NULL REFERENCES eventos(id) ON DELETE CASCADE,
             fecha_registro TIMESTAMP NOT NULL,
+            tipo_participacion VARCHAR(50) DEFAULT 'asistente',
+            detalle_participacion TEXT,
             UNIQUE(usuario_id, evento_id)
         );
         """)
+
+        # Agregamos las columnas a inscripciones por si la tabla ya existia
+        cursor.execute("ALTER TABLE inscripciones ADD COLUMN IF NOT EXISTS tipo_participacion VARCHAR(50) DEFAULT 'asistente';")
+        cursor.execute("ALTER TABLE inscripciones ADD COLUMN IF NOT EXISTS detalle_participacion TEXT;")
 
         # Tabla de calificaciones: las estrellas de 1 a 5 que deja cada estudiante
         cursor.execute("""
@@ -137,10 +149,53 @@ def init_db():
         );
         """)
 
+        # Tabla de reportes de problemas: inconvenientes reportados por estudiantes para mejorar el colegio
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reportes_problemas (
+            id SERIAL PRIMARY KEY,
+            usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+            evento_id INTEGER REFERENCES eventos(id) ON DELETE SET NULL,
+            tipo_problema VARCHAR(100) NOT NULL,
+            descripcion TEXT NOT NULL,
+            estado VARCHAR(30) NOT NULL DEFAULT 'pendiente',
+            fecha TIMESTAMP NOT NULL
+        );
+        """)
+
+        # Tabla de encuestas: para conocer la opinion escolar con preguntas cerradas y abiertas
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS encuestas (
+            id SERIAL PRIMARY KEY,
+            evento_id INTEGER NOT NULL REFERENCES eventos(id) ON DELETE CASCADE,
+            titulo VARCHAR(150) NOT NULL,
+            pregunta_1 VARCHAR(255) NOT NULL,
+            opciones_1 TEXT NOT NULL,
+            pregunta_2 VARCHAR(255),
+            opciones_2 TEXT,
+            pregunta_abierta VARCHAR(255) NOT NULL,
+            activa BOOLEAN DEFAULT TRUE,
+            fecha_creacion TIMESTAMP NOT NULL DEFAULT NOW()
+        );
+        """)
+
+        # Tabla de respuestas a encuestas
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS respuestas_encuestas (
+            id SERIAL PRIMARY KEY,
+            encuesta_id INTEGER NOT NULL REFERENCES encuestas(id) ON DELETE CASCADE,
+            usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+            respuesta_1 VARCHAR(100) NOT NULL,
+            respuesta_2 VARCHAR(100),
+            respuesta_abierta TEXT,
+            fecha TIMESTAMP NOT NULL DEFAULT NOW(),
+            UNIQUE(encuesta_id, usuario_id)
+        );
+        """)
+
         # Llenamos la base con algunos datos iniciales para que no este vacia
         seed_initial_data(conn)
 
-    print("Base de datos lista en Supabase")
+    print("Base de datos PostgreSQL lista")
 
 
 def seed_initial_data(conn):
@@ -202,6 +257,27 @@ def seed_initial_data(conn):
                 ("Comite de Cultura",)
             ]
         )
+
+    # Creamos el evento de prueba con la foto real de la cancha
+    cursor.execute("SELECT COUNT(*) as total FROM eventos")
+    if cursor.fetchone()["total"] == 0:
+        from datetime import datetime, timedelta
+        hoy = datetime.now()
+        fecha_evento = (hoy + timedelta(days=2)).strftime("%Y-%m-%d 10:00:00")
+
+        cursor.execute("""
+            INSERT INTO eventos (titulo, descripcion, fecha, ubicacion_id, categoria_id, organizador_id, imagen_url, frase_motivacional, permite_voluntarios, resumen_pasado)
+            VALUES 
+            (
+                'Torneo Relampago de Microfutbol Intercursos',
+                'Gran torneo de microfutbol entre los salones de bachillerato en la cancha del colegio. Ven con tu uniforme deportivo o camiseta para apoyar a tu salon.',
+                %s, 1, 1, 2,
+                'img/cancha_futbol_ideth.jpeg',
+                'El talento gana partidos, pero el trabajo en equipo y el respeto ganan campeonatos.',
+                true,
+                'El torneo intercursos anterior reunio a mas de 200 estudiantes en una jornada deportiva llena de emocion, donde el grado 11A se corono campeon.'
+            )
+        """, (fecha_evento,))
 
 
 if __name__ == "__main__":

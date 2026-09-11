@@ -1,6 +1,6 @@
 import re
 
-# Validaciones manuales para Flask (reemplazan a los modelos Pydantic de FastAPI).
+# Validaciones manuales para las peticiones JSON de Flask.
 # Cada funcion recibe el JSON del request y devuelve (datos_limpios, mensaje_error).
 # Si todo esta bien, mensaje_error es None. Si algo falla, datos_limpios es None
 # y mensaje_error explica el problema para mostrarlo en el frontend.

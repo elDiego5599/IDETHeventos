@@ -44,16 +44,23 @@
       <button class="tab-btn" data-tab="tab-mis-eventos">
         Mis Inscripciones <span class="tab-badge" id="badge-my-count">0</span>
       </button>
+      <button class="tab-btn" data-tab="tab-reportar-problema">Reportar un Inconveniente</button>
       <button class="tab-btn" data-tab="tab-sugerencias">Buzon de Sugerencias</button>
     </div>
 
     <!-- Pestaña 1: Cronograma -->
     <div class="tab-content active" id="tab-cronograma">
+      <div class="search-bar-wrap">
+        <input type="text" id="student-search-input" class="search-input" placeholder="Buscar por nombre, zona (cancha, auditorio), categoria...">
+      </div>
+
       <div class="filters-bar">
         <button class="filter-btn active" onclick="filterEvents('todos', this)">Todos</button>
         <button class="filter-btn" onclick="filterEvents('proximos', this)">Proximos</button>
+        <button class="filter-btn" onclick="filterEvents('activos', this)">En Vivo / Hoy</button>
         <button class="filter-btn" onclick="filterEvents('pasados', this)">Pasados</button>
       </div>
+
       <div class="events-grid" id="student-events-grid">
         <!-- Renderizado por student.js -->
       </div>
@@ -66,14 +73,48 @@
       </div>
     </div>
 
-    <!-- Pestaña 3: Buzón de Sugerencias -->
+    <!-- Pestaña 3: Reportar Problema o Inconveniente -->
+    <div class="tab-content" id="tab-reportar-problema">
+      <div class="suggestion-card" style="max-width: 650px;">
+        <h2 class="suggestion-card-title">Tuviste algun inconveniente en una actividad?</h2>
+        <p class="suggestion-card-desc">
+          Cuentanos si hubo problemas de sonido, falta de sillas, problemas de horario o situaciones de convivencia para que los organizadores lo solucionen.
+        </p>
+        <form id="form-report-problem">
+          <div class="form-group">
+            <label class="form-label" for="report-event-id">Evento relacionado (Opcional):</label>
+            <select id="report-event-id" class="form-control">
+              <option value="">Problema general del colegio o selecciona evento...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="report-type">Tipo de inconveniente:</label>
+            <select id="report-type" class="form-control" required>
+              <option value="">Selecciona tipo de problema...</option>
+              <option value="Sonido e Instalaciones">Sonido, microfonos o instalaciones</option>
+              <option value="Organizacion y Horarios">Retraso de horario o desorganizacion</option>
+              <option value="Espacio y Silleteria">Falta de espacio o silleteria insuficiente</option>
+              <option value="Convivencia y Disciplina">Convivencia o desorden en las gradas</option>
+              <option value="Otro inconveniente">Otro inconveniente</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="report-desc">Describe que sucedio:</label>
+            <textarea id="report-desc" class="form-control" rows="4" placeholder="Explica detalladamente el inconveniente que tuviste..." required minlength="5"></textarea>
+          </div>
+          <button type="submit" class="btn btn-danger">Enviar Reporte de Inconveniente</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Pestaña 4: Buzón de Sugerencias -->
     <div class="tab-content" id="tab-sugerencias">
       <div class="suggestion-card">
-        <h2 class="suggestion-card-title">Tienes una idea o sugerencia?</h2>
-        <p class="suggestion-card-desc">Tus sugerencias se envian a los organizadores para mejorar las actividades escolares.</p>
+        <h2 class="suggestion-card-title">Tienes una idea o propuesta para el colegio?</h2>
+        <p class="suggestion-card-desc">Tus sugerencias ayudan a que los profesores y personeria organicen mejores eventos.</p>
         <form id="form-suggestion">
           <div class="form-group">
-            <label class="form-label" for="input-suggestion-text">Escribe tu sugerencia:</label>
+            <label class="form-label" for="input-suggestion-text">Escribe tu propuesta:</label>
             <textarea id="input-suggestion-text" class="form-control" rows="4" placeholder="Escribe tu propuesta aqui..." required minlength="5"></textarea>
           </div>
           <button type="submit" class="btn btn-primary">Enviar Sugerencia</button>
@@ -90,22 +131,66 @@
         <button class="modal-close" onclick="closeModal('student-event-modal')">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="modal-badges">
-          <span class="badge badge-category" id="modal-cat">Categoria</span>
+        <img id="modal-cover" src="" alt="Portada del evento" class="modal-event-cover" style="display: none;">
+
+        <div class="modal-badges" style="margin-bottom: 8px;">
+          <span class="badge badge-category" id="modal-cat">Deportes</span>
           <span class="badge" id="modal-status">Estado</span>
+          <span class="badge badge-volunteer" id="modal-volunteer-badge" style="display: none;">Voluntariado</span>
         </div>
-        <p class="modal-desc" id="modal-desc"></p>
-        <div class="event-meta">
-          <div><strong>Fecha:</strong> <span id="modal-date"></span></div>
+
+        <div id="modal-motto-box" style="display: none; font-style: italic; color: #b45309; font-size: 0.9rem; margin-bottom: 12px; text-align: center;">
+          <span id="modal-motto"></span>
+        </div>
+
+        <div id="modal-summary-box" style="display: none; background: #f0fdf4; border-left: 3px solid #16a34a; padding: 10px 14px; border-radius: 6px; font-size: 0.88rem; color: #166534; margin-bottom: 14px;">
+          <strong>Resumen:</strong> <span id="modal-summary-desc"></span>
+        </div>
+
+        <p class="modal-desc" id="modal-desc" style="font-size: 0.92rem; color: var(--text-dark); line-height: 1.5; margin-bottom: 14px;"></p>
+        <div class="event-meta" style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 14px;">
           <div><strong>Lugar:</strong> <span id="modal-loc"></span></div>
-          <div><strong>Organiza:</strong> <span id="modal-org"></span></div>
+          <div><strong>Fecha:</strong> <span id="modal-date"></span></div>
           <div><strong>Inscritos:</strong> <span id="modal-enrolled-count"></span> estudiantes</div>
         </div>
 
+        <!-- Caja condicional de inscripcion (Asistente vs Voluntario activo) -->
         <div class="modal-enroll-box" id="modal-enroll-action">
-          <!-- Boton renderizado por student.js -->
+          <!-- Renderizado por student.js -->
         </div>
 
+        <!-- Modulo de Encuesta Escolar si el evento tiene una activa -->
+        <div id="modal-survey-box" class="survey-box" style="display: none;">
+          <h4 class="survey-question-title" id="survey-title-display">Encuesta de Opinion</h4>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Tu opinion nos ayuda a mejorar los futuros eventos del colegio.</p>
+
+          <form id="form-submit-survey">
+            <input type="hidden" id="survey-active-id">
+
+            <div style="margin-bottom: 12px;">
+              <label class="form-label" id="survey-q1-label">Pregunta 1</label>
+              <div id="survey-q1-options" class="survey-radio-options"></div>
+            </div>
+
+            <div id="survey-q2-container" style="margin-bottom: 12px; display: none;">
+              <label class="form-label" id="survey-q2-label">Pregunta 2</label>
+              <div id="survey-q2-options" class="survey-radio-options"></div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label class="form-label" id="survey-qopen-label">Opinion Libre:</label>
+              <textarea id="survey-open-text" class="form-control" rows="2" placeholder="Escribe libremente lo que piensas o sugieres..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm">Enviar Respuestas</button>
+          </form>
+        </div>
+
+        <div id="modal-survey-answered" style="display: none; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px; border-radius: var(--radius); margin-bottom: 14px; font-size: 0.86rem; color: #065f46;">
+          Ya respondiste la encuesta de este evento escolar. Muchas gracias por tu opinion!
+        </div>
+
+        <!-- Calificacion de estrellas -->
         <div class="star-rating-box" id="star-rating-box">
           <h4 class="star-rating-title">Califica esta actividad</h4>
           <p class="star-rating-hint" id="star-rating-hint">Haz clic en una estrella para calificar (1 a 5):</p>
@@ -118,11 +203,12 @@
           </div>
         </div>
 
-        <h4 class="modal-section-title">Comentarios</h4>
+        <!-- Comentarios -->
+        <h4 class="modal-section-title">Comentarios y opiniones</h4>
         <div id="comment-form-box">
           <form id="form-add-comment" style="margin-bottom: 14px;">
             <div class="form-group" style="margin-bottom: 8px;">
-              <input type="text" id="input-comment-text" class="form-control" placeholder="Escribe tu comentario sobre este evento..." required minlength="2">
+              <input type="text" id="input-comment-text" class="form-control" placeholder="Escribe tu opinion o experiencia sobre este evento..." required minlength="2">
             </div>
             <button type="submit" class="btn btn-secondary btn-sm">Publicar Comentario</button>
           </form>
@@ -134,6 +220,23 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline btn-sm" onclick="closeModal('student-event-modal')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Comprobante / Pase Escolar (Idea adicional 3) -->
+  <div class="modal-overlay" id="pass-modal">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Pase Escolar de Participacion</h3>
+        <button class="modal-close" onclick="closeModal('pass-modal')">&times;</button>
+      </div>
+      <div class="modal-body" id="pass-modal-content">
+        <!-- Renderizado dinamicamente por student.js -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm" onclick="window.print()">Imprimir / Guardar</button>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('pass-modal')">Cerrar</button>
       </div>
     </div>
   </div>
