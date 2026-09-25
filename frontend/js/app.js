@@ -8,6 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
   loadPublicEvents();
   setupFilterButtons();
   setupSearchInput();
+
+  const message = new URLSearchParams(window.location.search).get('mensaje');
+  if (message) {
+    showToast(message, 'error');
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
 });
 
 // Trae los eventos desde el backend y los muestra

@@ -27,6 +27,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def create_access_token(data: dict) -> str:
     # Crea un token para que el usuario no tenga que loguearse a cada rato
     to_encode = data.copy()
+    if "sub" in to_encode:
+        to_encode["sub"] = str(to_encode["sub"])
     expire = datetime.now(timezone.utc) + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -49,7 +51,8 @@ def _usuario_desde_token():
         user_id = payload.get("sub")
         if user_id is None:
             return None
-    except jwt.PyJWTError:
+        user_id = int(user_id)
+    except (ValueError, TypeError, jwt.PyJWTError):
         return None
 
     try:
