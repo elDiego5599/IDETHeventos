@@ -619,6 +619,15 @@ def stats():
     return jsonify(values)
 
 
+@app.after_request
+def sin_cache(response):
+    # El navegador guardaba versiones viejas de css/js y no mostraba las fotos
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
 @app.get("/")
 def serve_index():
     return send_from_directory(FRONTEND_DIR, "index.html")

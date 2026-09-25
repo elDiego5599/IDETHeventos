@@ -67,7 +67,7 @@ async function loadData() {
 }
 
 function getEventThumbnail(url) {
-  if (!url || !url.trim()) return '/static/img/cancha_futbol_ideth.jpeg';
+  if (!url || !url.trim()) return '';
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   if (url.startsWith('/static/')) return url;
   if (url.startsWith('/')) return url;
@@ -159,6 +159,11 @@ async function loadMyInscriptions() {
         : '<span class="badge badge-enrolled">Asistente</span>';
 
       const photoUrl = getEventThumbnail(e.imagen_url);
+      const photoHtml = photoUrl
+        ? `<div class="event-card-img-wrap">
+             <img src="${photoUrl}" alt="${e.titulo}" class="event-card-img" onerror="this.src='https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800&auto=format&fit=crop&q=60'">
+           </div>`
+        : '';
 
       const detalleTexto = isVolunteer && e.detalle_participacion
         ? `<div style="background: #fdf4ff; border: 1px solid #f0abfc; padding: 6px 10px; border-radius: 4px; font-size: 0.82rem; color: #86198f; margin-bottom: 8px;">
@@ -168,9 +173,7 @@ async function loadMyInscriptions() {
 
       return `
         <div class="event-card">
-          <div class="event-card-img-wrap">
-            <img src="${photoUrl}" alt="${e.titulo}" class="event-card-img" onerror="this.src='https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800&auto=format&fit=crop&q=60'">
-          </div>
+          ${photoHtml}
           <div class="event-card-header">
             <span class="badge badge-category">${e.categoria_nombre || 'General'}</span>
             ${roleBadge}
@@ -229,6 +232,11 @@ function renderStudentEvents(events) {
       : '';
 
     const photoUrl = getEventThumbnail(e.imagen_url);
+    const photoHtml = photoUrl
+      ? `<div class="event-card-img-wrap">
+           <img src="${photoUrl}" alt="${e.titulo}" class="event-card-img" onerror="this.src='/static/img/cancha_futbol_ideth.jpeg'">
+         </div>`
+      : '';
 
     const mottoHtml = e.frase_motivacional
       ? `<div style="font-style: italic; color: #b45309; font-size: 0.84rem; margin-bottom: 8px;">"${e.frase_motivacional}"</div>`
@@ -236,9 +244,7 @@ function renderStudentEvents(events) {
 
     return `
       <div class="event-card">
-        <div class="event-card-img-wrap">
-          <img src="${photoUrl}" alt="${e.titulo}" class="event-card-img" onerror="this.src='/static/img/cancha_futbol_ideth.jpeg'">
-        </div>
+        ${photoHtml}
         <div class="event-card-header">
           <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
             <span class="badge badge-category">${e.categoria_nombre || 'Deportes'}</span>
@@ -283,11 +289,17 @@ async function openStudentModal(id) {
     setStudentText('modal-org', e.organizador_nombre || 'Colegio IDETH');
     setStudentText('modal-enrolled-count', e.total_inscritos || 0);
 
-    // Foto de portada
+    // Foto de portada (si el evento no tiene foto, el modal va sin imagen)
     const coverEl = document.getElementById('modal-cover');
-    coverEl.onerror = () => { coverEl.src = '/static/img/cancha_futbol_ideth.jpeg'; };
-    coverEl.src = getEventThumbnail(e.imagen_url);
-    coverEl.style.display = 'block';
+    const coverUrl = getEventThumbnail(e.imagen_url);
+    if (coverUrl) {
+      coverEl.onerror = () => { coverEl.src = '/static/img/cancha_futbol_ideth.jpeg'; };
+      coverEl.src = coverUrl;
+      coverEl.style.display = 'block';
+    } else {
+      coverEl.removeAttribute('src');
+      coverEl.style.display = 'none';
+    }
 
     // Frase motivacional
     const mottoBox = document.getElementById('modal-motto-box');

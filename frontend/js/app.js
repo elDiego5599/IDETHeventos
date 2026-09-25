@@ -66,9 +66,9 @@ function setupSearchInput() {
   }
 }
 
-// Imagen por defecto del colegio si el evento no tiene foto
+// Imagen del evento, vacio si no tiene foto (la tarjeta va sin imagen)
 function getEventThumbnail(url) {
-  if (!url || !url.trim()) return '/static/img/cancha_futbol_ideth.jpeg';
+  if (!url || !url.trim()) return '';
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   if (url.startsWith('/static/')) return url;
   if (url.startsWith('/')) return url;
@@ -99,6 +99,11 @@ function renderEvents(events) {
 
     const categoryBadge = `<span class="badge badge-category">${e.categoria_nombre || 'Deportes'}</span>`;
     const photoUrl = getEventThumbnail(e.imagen_url);
+    const photoHtml = photoUrl
+      ? `<div class="event-card-img-wrap">
+           <img src="${photoUrl}" alt="${e.titulo}" class="event-card-img" onerror="this.src='/static/img/cancha_futbol_ideth.jpeg'">
+         </div>`
+      : '';
 
     const mottoHtml = e.frase_motivacional
       ? `<div style="font-style: italic; color: #b45309; font-size: 0.84rem; margin-bottom: 8px;">"${e.frase_motivacional}"</div>`
@@ -106,9 +111,7 @@ function renderEvents(events) {
 
     return `
       <div class="event-card">
-        <div class="event-card-img-wrap">
-          <img src="${photoUrl}" alt="${e.titulo}" class="event-card-img" onerror="this.src='/static/img/cancha_futbol_ideth.jpeg'">
-        </div>
+        ${photoHtml}
         <div class="event-card-header">
           ${categoryBadge}
           <div style="display: flex; gap: 4px; align-items: center;">
@@ -156,6 +159,9 @@ async function openPublicEventDetail(id) {
     document.getElementById('modal-detail-title').textContent = e.titulo;
 
     const photoUrl = getEventThumbnail(e.imagen_url);
+    const photoHtml = photoUrl
+      ? `<img src="${photoUrl}" alt="${e.titulo}" class="modal-event-cover" onerror="this.src='/static/img/cancha_futbol_ideth.jpeg'">`
+      : '';
 
     // Badges
     let statusBadge = '<span class="badge badge-upcoming">Proximo</span>';
@@ -178,7 +184,7 @@ async function openPublicEventDetail(id) {
       : '';
 
     document.getElementById('modal-detail-body').innerHTML = `
-      <img src="${photoUrl}" alt="${e.titulo}" class="modal-event-cover" onerror="this.src='/static/img/cancha_futbol_ideth.jpeg'">
+      ${photoHtml}
       <div class="modal-badges" style="margin-bottom: 8px;">
         <span class="badge badge-category">${e.categoria_nombre || 'Deportes'}</span>
         ${statusBadge}
