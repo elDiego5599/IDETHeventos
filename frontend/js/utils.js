@@ -65,7 +65,7 @@ async function apiRequest(endpoint, options = {}) {
       // Si el token ya no sirve, cerramos sesion y mandamos al login
       if (res.status === 401 && AuthStorage.isLoggedIn()) {
         AuthStorage.clear();
-        window.location.href = '/login';
+        window.location.href = '/?mensaje=' + encodeURIComponent('problema al validar token');
       }
       throw new Error(data?.detail || data?.mensaje || 'Error en la solicitud');
     }

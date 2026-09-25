@@ -15,11 +15,22 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 def get_db():
     if not DATABASE_URL:
         raise RuntimeError("DATABASE_URL no esta configurada en .env")
-    conn = psycopg2.connect(
-        DATABASE_URL,
-        cursor_factory=psycopg2.extras.RealDictCursor,
-        connect_timeout=5,
-    )
+    try:
+        conn = psycopg2.connect(
+            DATABASE_URL,
+            cursor_factory=psycopg2.extras.RealDictCursor,
+            connect_timeout=5,
+        )
+    except UnicodeDecodeError as exc:
+        # psycopg2-binary en Windows no decodifica mensajes de libpq en español
+        # (ej. «localhost», «eventos_ideth» en cp1252) y enmascara el error real.
+        # Casi siempre significa: la base no existe o falló la autenticación.
+        raise RuntimeError(
+            "No se pudo conectar a PostgreSQL (psycopg2 ocultó el mensaje original "
+            "por un problema de codificación con tildes/«»). Verifica que la base "
+            "'eventos_ideth' exista, que el usuario/clave del .env sean correctos y "
+            "que PostgreSQL esté corriendo en localhost:5432."
+        ) from exc
 
     try:
         yield conn
