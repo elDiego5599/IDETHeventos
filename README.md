@@ -1,6 +1,6 @@
 # Portal de Eventos IDETH
 
-Portal web sencillo para eventos escolares del Colegio IDETH. Hecho por estudiantes de 11°.
+Portal web sencillo para eventos escolares del Colegio IDETH.
 
 ---
 
