@@ -5,6 +5,7 @@ let currentFilter = 'todos';
 // Cuando se carga la pagina, actualizamos el menu y cargamos los eventos
 document.addEventListener('DOMContentLoaded', () => {
   updateNavbar();
+  setupNavbarScroll();
   loadPublicEvents();
   setupFilterButtons();
   setupSearchInput();
@@ -16,6 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+function setupNavbarScroll() {
+  const navbar = document.querySelector('.navbar');
+  if (!navbar) return;
+
+  const updateNavbarState = () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 24);
+  };
+
+  updateNavbarState();
+  window.addEventListener('scroll', updateNavbarState, { passive: true });
+}
+
 // Trae los eventos desde el backend y los muestra
 async function loadPublicEvents() {
   const container = document.getElementById('events-grid');
@@ -24,10 +37,104 @@ async function loadPublicEvents() {
   try {
     const events = await API.get('/api/eventos');
     allEvents = events;
+    setupHeroCarousel(events);
     applyCurrentFilters();
   } catch (err) {
     container.innerHTML = `<div class="empty-state">No se pudo cargar la lista de eventos.</div>`;
+    setupHeroCarousel([]);
   }
+}
+
+function setupHeroCarousel(events) {
+  const carousel = document.getElementById('hero-carousel');
+  const track = document.getElementById('hero-carousel-track');
+  const dotsContainer = document.getElementById('hero-carousel-dots');
+  if (!carousel || !track || !dotsContainer) return;
+
+  const recentEvents = events
+    .filter(event => event.imagen_url && event.fecha)
+    .sort((first, second) => new Date(second.fecha.replace(' ', 'T')) - new Date(first.fecha.replace(' ', 'T')))
+    .slice(0, 5);
+
+  if (recentEvents.length === 0) {
+    track.innerHTML = '<div class="hero-carousel-empty">Pronto compartiremos nuevas actividades del colegio.</div>';
+    dotsContainer.hidden = true;
+    carousel.querySelector('.hero-carousel-controls').hidden = true;
+    return;
+  }
+
+  track.innerHTML = recentEvents.map((event, index) => {
+    const date = new Date(`${event.fecha.slice(0, 10)}T12:00:00`);
+    const dateLabel = new Intl.DateTimeFormat('es-CO', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    }).format(date);
+    const imageUrl = getEventThumbnail(event.imagen_url);
+
+    return `
+      <button class="hero-carousel-slide${index === 0 ? ' active' : ''}" type="button"
+        data-slide-index="${index}" aria-label="Ver detalles de ${event.titulo}" aria-hidden="${index !== 0}">
+        <img src="${imageUrl}" alt="${event.titulo}" ${index === 0 ? 'fetchpriority="high"' : 'loading="lazy"'}>
+        <span class="hero-carousel-caption">
+          <span class="hero-carousel-date">${dateLabel}</span>
+          <span class="hero-carousel-title">${event.titulo}</span>
+        </span>
+      </button>
+    `;
+  }).join('');
+
+  dotsContainer.innerHTML = recentEvents.map((event, index) => `
+    <button class="hero-carousel-dot${index === 0 ? ' active' : ''}" type="button"
+      data-slide-index="${index}" aria-label="Mostrar ${event.titulo}" aria-current="${index === 0 ? 'true' : 'false'}"></button>
+  `).join('');
+
+  const slides = [...track.querySelectorAll('.hero-carousel-slide')];
+  const dots = [...dotsContainer.querySelectorAll('.hero-carousel-dot')];
+  const controls = carousel.querySelector('.hero-carousel-controls');
+  let activeIndex = 0;
+  let timer;
+
+  const showSlide = (index) => {
+    activeIndex = (index + slides.length) % slides.length;
+    slides.forEach((slide, slideIndex) => {
+      const isActive = slideIndex === activeIndex;
+      slide.classList.toggle('active', isActive);
+      slide.setAttribute('aria-hidden', String(!isActive));
+    });
+    dots.forEach((dot, dotIndex) => {
+      const isActive = dotIndex === activeIndex;
+      dot.classList.toggle('active', isActive);
+      dot.setAttribute('aria-current', String(isActive));
+    });
+  };
+  const pause = () => window.clearInterval(timer);
+  const resume = () => {
+    pause();
+    if (slides.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      timer = window.setInterval(() => showSlide(activeIndex + 1), 5000);
+    }
+  };
+
+  controls.hidden = slides.length < 2;
+  dotsContainer.hidden = slides.length < 2;
+  controls.querySelector('[data-carousel-prev]').addEventListener('click', () => showSlide(activeIndex - 1));
+  controls.querySelector('[data-carousel-next]').addEventListener('click', () => showSlide(activeIndex + 1));
+  dotsContainer.addEventListener('click', (event) => {
+    const dot = event.target.closest('[data-slide-index]');
+    if (dot) showSlide(Number(dot.dataset.slideIndex));
+  });
+  track.addEventListener('click', (event) => {
+    const slide = event.target.closest('.hero-carousel-slide');
+    if (slide) openPublicEventDetail(recentEvents[Number(slide.dataset.slideIndex)].id);
+  });
+  carousel.addEventListener('mouseenter', pause);
+  carousel.addEventListener('mouseleave', resume);
+  carousel.addEventListener('focusin', pause);
+  carousel.addEventListener('focusout', (event) => {
+    if (!carousel.contains(event.relatedTarget)) resume();
+  });
+  resume();
 }
 
 // Filtra y busca eventos en tiempo real
@@ -106,7 +213,7 @@ function renderEvents(events) {
       : '';
 
     const mottoHtml = e.frase_motivacional
-      ? `<div style="font-style: italic; color: #b45309; font-size: 0.84rem; margin-bottom: 8px;">"${e.frase_motivacional}"</div>`
+      ? `<div class="event-motto">"${e.frase_motivacional}"</div>`
       : '';
 
     return `
@@ -114,7 +221,7 @@ function renderEvents(events) {
         ${photoHtml}
         <div class="event-card-header">
           ${categoryBadge}
-          <div style="display: flex; gap: 4px; align-items: center;">
+          <div class="event-card-statuses">
             ${volunteerBadge}
             ${statusBadge}
           </div>
@@ -129,7 +236,7 @@ function renderEvents(events) {
           </div>
         </div>
         <div class="event-card-footer">
-          <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">
+          <span class="event-enrollment-count">
             ${e.total_inscritos || 0} inscritos
           </span>
           <button onclick="openPublicEventDetail(${e.id})" class="btn btn-outline btn-sm">Ver Detalle</button>
@@ -176,24 +283,24 @@ async function openPublicEventDetail(id) {
       : '';
 
     const mottoHtml = e.frase_motivacional
-      ? `<div style="font-style: italic; color: #b45309; font-size: 0.9rem; margin-bottom: 12px; text-align: center;">"${e.frase_motivacional}"</div>`
+      ? `<div class="event-motto event-motto-centered">"${e.frase_motivacional}"</div>`
       : '';
 
     const summaryHtml = (e.es_pasado || e.estado === 'pasado') && e.resumen_pasado
-      ? `<div style="background: #f0fdf4; border-left: 3px solid #16a34a; padding: 10px 14px; border-radius: 6px; font-size: 0.88rem; color: #166534; margin-bottom: 14px;"><strong>Resumen:</strong> ${e.resumen_pasado}</div>`
+      ? `<div class="event-summary-box"><strong>Resumen:</strong> ${e.resumen_pasado}</div>`
       : '';
 
     document.getElementById('modal-detail-body').innerHTML = `
       ${photoHtml}
-      <div class="modal-badges" style="margin-bottom: 8px;">
+      <div class="modal-badges">
         <span class="badge badge-category">${e.categoria_nombre || 'Deportes'}</span>
         ${statusBadge}
         ${volunteerBadge}
       </div>
       ${mottoHtml}
       ${summaryHtml}
-      <p style="font-size: 0.92rem; color: var(--text-dark); line-height: 1.5; margin-bottom: 14px;">${e.descripcion || 'Actividad deportiva escolar.'}</p>
-      <div class="event-meta" style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+      <p class="modal-desc">${e.descripcion || 'Actividad deportiva escolar.'}</p>
+      <div class="event-meta modal-event-meta">
         <div><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Cancha Principal'}</div>
         <div><strong>Fecha:</strong> ${e.fecha}</div>
         <div><strong>Inscritos:</strong> ${e.total_inscritos || 0} estudiantes</div>
