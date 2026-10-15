@@ -65,13 +65,15 @@ IDETHeventos/
 
 ### 1. Configurar PostgreSQL
 
-1. Crea la base `eventos_ideth` en PostgreSQL usando pgAdmin 4.
-2. Ejecuta `eventos_ideth_compatible.sql` en esa base.
+1. Instala PostgreSQL (15 o superior) con usuario `postgres` y password `1234`.
+2. Ejecuta `RESTAURAR_BD.bat` (crea la base `eventos_ideth` y carga los datos), o si prefieres una base vacia, creala desde pgAdmin 4.
 3. Abre el archivo `.env` y configura:
    ```
    DATABASE_URL=postgresql://postgres:TU_PASSWORD@localhost:5432/eventos_ideth
    JWT_SECRET=una-clave-local
    ```
+
+> Si no existe la base, la aplicacion igual arranca y crea las tablas y los datos de ejemplo automaticamente.
 
 ### 2. Instalar dependencias
 
@@ -82,12 +84,14 @@ pip install -r requirements.txt
 ### 3. Iniciar el servidor
 
 ```bash
-python3 backend/main.py
+python -m backend.main
 ```
+
+O simplemente dale doble clic a `INICIAR.bat` (crea el entorno virtual, instala todo y arranca).
 
 ### 4. Abrir en el navegador
 
-`http://127.0.0.1:8000`
+`http://localhost:8000`
 
 ---
 

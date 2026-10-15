@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/styles.css?v=3">
+  <link rel="stylesheet" href="/static/css/styles.css?v=6">
 </head>
 <body>
 
@@ -26,13 +26,27 @@
   </header>
 
   <section class="hero">
-    <div class="container">
-      <img src="/static/img/logoColegio.jpeg" alt="Logo Colegio IDETH" class="hero-logo-img">
-      <h1 class="hero-title">Eventos Colegio IDETH</h1>
-      <p class="hero-subtitle">Enterate de todas las actividades escolares y participa.</p>
-      <div class="hero-actions">
-        <a href="#eventos" class="btn btn-primary btn-lg">Ver Eventos</a>
-        <a href="/register" class="btn btn-secondary btn-lg">Crear Cuenta</a>
+    <div class="container hero-layout">
+      <div class="hero-copy">
+        <p class="hero-kicker">Comunidad IDETH</p>
+        <h1 class="hero-title">Cada encuentro crea una historia.</h1>
+        <p class="hero-subtitle">Descubre las actividades del colegio, encuentra tu proximo plan y participa.</p>
+        <div class="hero-actions">
+          <a href="#eventos" class="btn btn-primary btn-lg">Explorar eventos</a>
+          <a href="/register" class="btn btn-secondary btn-lg">Crear cuenta</a>
+        </div>
+      </div>
+      <div class="hero-media">
+        <div class="hero-carousel" id="hero-carousel" aria-label="Eventos recientes del colegio">
+          <div class="hero-carousel-track" id="hero-carousel-track" aria-live="polite">
+            <div class="hero-carousel-empty">Cargando eventos recientes...</div>
+          </div>
+          <div class="hero-carousel-dots" id="hero-carousel-dots" role="group" aria-label="Seleccionar evento"></div>
+          <div class="hero-carousel-controls">
+            <button class="hero-carousel-control" type="button" data-carousel-prev aria-label="Evento anterior"></button>
+            <button class="hero-carousel-control" type="button" data-carousel-next aria-label="Evento siguiente"></button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -40,8 +54,8 @@
   <section class="section" id="eventos">
     <div class="container">
       <div class="section-header">
-        <h2 class="section-title">Eventos Escolares</h2>
-        <p class="section-subtitle">Actividades programadas en el colegio</p>
+        <h2 class="section-title">Agenda escolar</h2>
+        <p class="section-subtitle">Encuentra la proxima actividad para vivir en comunidad.</p>
       </div>
 
       <div class="search-bar-wrap">
