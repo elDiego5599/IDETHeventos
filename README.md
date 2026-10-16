@@ -40,6 +40,8 @@ IDETHeventos/
 │   └── main.py           # Servidor Flask con todos los endpoints
 ├── scripts/
 │   └── restaurar_bd.ps1  # Crea la base local sin borrar una existente
+├── respaldo/
+│   └── eventos_ideth.sql # Volcado PostgreSQL para la copia de distribucion
 ├── frontend/
 │   ├── index.html        # Pagina principal
 │   ├── login.html        # Pagina de inicio de sesion
@@ -70,14 +72,16 @@ IDETHeventos/
 1. Instala Python desde [python.org](https://www.python.org/downloads/) y marca **Add python.exe to PATH** durante la instalacion.
 2. Instala PostgreSQL para Windows. Conserva el puerto `5432` y anota la clave que asignes al usuario `postgres`.
 3. Descomprime el proyecto. En la carpeta principal deben estar `INICIAR.bat` y `RESTAURAR_BD.bat`.
-4. Ejecuta `RESTAURAR_BD.bat`, escribe la clave de `postgres` y pulsa Enter. La clave no se muestra mientras escribes. El script crea `eventos_ideth`; si ya existe, la conserva sin borrar ni sobrescribir sus datos.
+4. Ejecuta `RESTAURAR_BD.bat`, escribe la clave de `postgres` y pulsa Enter. La clave no se muestra mientras escribes. El script crea `eventos_ideth` y carga el respaldo incluido solo si la base no existia; si ya existe, la conserva sin borrar ni sobrescribir sus datos.
 5. Ejecuta `INICIAR.bat`. La primera vez crea el entorno virtual, instala las dependencias y abre `.env` en el Bloc de notas.
 6. En `.env`, reemplaza `TU_PASSWORD` en `DATABASE_URL` por la clave de PostgreSQL, guarda y cierra el Bloc de notas. Si tu clave contiene caracteres reservados para una URL, codificalos (por ejemplo, `@` como `%40`).
 7. El servidor se inicia en `http://localhost:8000`; el navegador se abre cuando la aplicacion ya responde. Mantén abierta la ventana negra mientras usas el portal.
 
 Para iniciar el proyecto en otra ocasion, ejecuta de nuevo `INICIAR.bat`; la instalacion de dependencias se verifica y no se repite si ya esta lista. Cierra la ventana del servidor para detenerlo.
 
-La primera peticion crea las tablas y los datos de ejemplo si las tablas estan vacias. No hace falta importar un archivo SQL.
+Si no hay un respaldo SQL, la primera peticion crea las tablas y los datos de ejemplo si las tablas estan vacias.
+
+El ZIP preparado para compartir incluye el `.env` local y un respaldo de PostgreSQL. Ambos pueden contener credenciales y datos personales; compartelo solo con personas autorizadas. El archivo `backend/eventos.db` no se incluye porque el backend actual no lo utiliza.
 
 ### Ejecucion manual (opcional)
 
