@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $databaseName = 'eventos_ideth'
 $postgresBin = $null
+$databaseCreated = $false
 
 $psqlCommand = Get-Command 'psql.exe' -ErrorAction SilentlyContinue
 if ($psqlCommand) {
@@ -40,13 +41,29 @@ try {
         if ($LASTEXITCODE -ne 0) {
             throw "No se pudo crear la base $databaseName."
         }
+        $databaseCreated = $true
         Write-Host "Base $databaseName creada." -ForegroundColor Green
     } else {
         & $psql -X -v ON_ERROR_STOP=1 -h localhost -p 5432 -U postgres -d postgres -c "CREATE DATABASE $databaseName"
         if ($LASTEXITCODE -ne 0) {
             throw "No se pudo crear la base $databaseName."
         }
+        $databaseCreated = $true
         Write-Host "Base $databaseName creada." -ForegroundColor Green
+    }
+
+    if ($databaseCreated) {
+        $backupPath = Join-Path $PSScriptRoot '..\respaldo\eventos_ideth.sql'
+        if (Test-Path $backupPath) {
+            Write-Host 'Cargando el respaldo incluido en el proyecto...'
+            & $psql -X -v ON_ERROR_STOP=1 -h localhost -p 5432 -U postgres -d $databaseName -f $backupPath
+            if ($LASTEXITCODE -ne 0) {
+                throw 'No se pudo importar el respaldo PostgreSQL.'
+            }
+            Write-Host 'Respaldo cargado correctamente.' -ForegroundColor Green
+        } else {
+            Write-Host 'No hay respaldo incluido; la aplicacion creara tablas y datos de ejemplo al iniciar.' -ForegroundColor Yellow
+        }
     }
 
     & $psql -X -h localhost -p 5432 -U postgres -d $databaseName -tAc 'SELECT 1' | Out-Null
