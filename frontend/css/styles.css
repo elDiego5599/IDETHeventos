@@ -835,3 +835,40 @@ body {
   letter-spacing: 0.5px;
 }
 
+
+/* Informacion plegable de las tarjetas de eventos */
+.event-card-extra { display: none; margin-top: 10px; }
+.event-card.expanded .event-card-extra { display: block; }
+.event-card-place { font-size: 0.84rem; color: var(--text-muted); }
+.event-toggle {
+  margin-top: 10px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--primary);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.event-toggle:hover { text-decoration: underline; }
+
+/* Filtro de eventos por fecha */
+.date-filter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.date-filter-label { font-size: 0.84rem; font-weight: 600; color: var(--text-muted); }
+.date-input {
+  padding: 8px 10px;
+  border: 1px solid rgba(140, 157, 177, 0.45);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.88rem;
+  background: #ffffff;
+  color: var(--text-main);
+}
+.date-input:focus { outline: none; border-color: rgba(39, 93, 168, 0.45); box-shadow: 0 0 0 4px rgba(39, 93, 168, 0.1); }

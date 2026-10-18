@@ -4,6 +4,9 @@ let cachedLocs = [];
 let cachedOrgs = [];
 let cachedEvents = [];
 let editingEventId = null;
+let adminEventsPage = 1;
+const ADMIN_EVENTS_PER_PAGE = 6;
+const CHART_COLORS = ['#275da8', '#e8795b', '#287a4b', '#7c5cbf', '#d99a1f', '#2a9aa0', '#bd443b', '#6b7a90'];
 
 const PHOTO_PRESETS = {
   futbol: 'img/cancha_futbol_ideth.jpeg',
@@ -59,6 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupCatalogForms();
   setupEventForm();
   setupSurveyForm();
+  initSurveyPresets();
 
   // Cargamos los datos del panel
   await loadStats();
@@ -87,6 +91,15 @@ function setupAdminTabs() {
   });
 }
 
+// Cambia a una pestaña del panel desde otro boton
+function goToAdminTab(tabId) {
+  const btn = document.querySelector(`.tab-admin-btn[data-tab="${tabId}"]`);
+  if (btn) {
+    btn.click();
+    btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
 // Carga las estadisticas numericas del colegio
 async function loadStats() {
   try {
@@ -97,9 +110,108 @@ async function loadStats() {
     document.getElementById('stat-problems').textContent = stats.total_problemas || 0;
     document.getElementById('stat-surveys').textContent = stats.total_encuestas || 0;
     document.getElementById('stat-suggestions').textContent = stats.total_sugerencias || 0;
+    renderAttentionPanel(stats);
+    renderCategoryChart(stats.eventos_por_categoria || []);
+    renderTopEventsChart(stats.inscripciones_por_evento || []);
+    renderReportsDonut(stats.reportes_por_estado || {});
   } catch (err) {
     console.error(err);
   }
+}
+
+// Escapa texto antes de ponerlo en el HTML
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Tarjetas grandes con lo que el admin debe revisar primero
+function renderAttentionPanel(stats) {
+  const pending = (stats.reportes_por_estado || {}).pendiente || 0;
+  document.getElementById('attention-reports-number').textContent = pending;
+  document.getElementById('attention-reports').classList.toggle('has-pending', pending > 0);
+  document.getElementById('attention-suggestions-number').textContent = stats.total_sugerencias || 0;
+  document.getElementById('attention-suggestions').classList.toggle('has-pending', (stats.total_sugerencias || 0) > 0);
+
+  const next = stats.proximo_evento;
+  document.getElementById('attention-event-title').textContent = next ? next.titulo : 'Sin eventos proximos';
+  document.getElementById('attention-event-sub').textContent = next
+    ? `${next.fecha} - ${next.total_inscritos} inscritos`
+    : 'Crea un evento para anunciarlo a los estudiantes.';
+}
+
+// Barras horizontales con un color por categoria
+function renderCategoryChart(items) {
+  const box = document.getElementById('chart-categories');
+  if (!box) return;
+  if (items.length === 0) {
+    box.innerHTML = '<div class="chart-empty">Aun no hay eventos.</div>';
+    return;
+  }
+  const max = Math.max(...items.map(i => i.total), 1);
+  box.innerHTML = items.map((item, idx) => `
+    <div class="bar-row">
+      <span class="bar-label" title="${escapeHtml(item.nombre)}">${escapeHtml(item.nombre)}</span>
+      <div class="bar-track"><div class="bar-fill" style="width: ${Math.max(item.total / max * 100, 4)}%; background: ${CHART_COLORS[idx % CHART_COLORS.length]};"></div></div>
+      <span class="bar-value">${item.total}</span>
+    </div>
+  `).join('');
+}
+
+// Los 5 eventos con mas inscritos
+function renderTopEventsChart(items) {
+  const box = document.getElementById('chart-top-events');
+  if (!box) return;
+  if (items.length === 0 || items.every(i => i.total === 0)) {
+    box.innerHTML = '<div class="chart-empty">Todavia no hay inscripciones.</div>';
+    return;
+  }
+  const max = Math.max(...items.map(i => i.total), 1);
+  box.innerHTML = items.map(item => `
+    <div class="bar-row">
+      <span class="bar-label" title="${escapeHtml(item.titulo)}">${escapeHtml(item.titulo)}</span>
+      <div class="bar-track"><div class="bar-fill" style="width: ${Math.max(item.total / max * 100, 4)}%; background: var(--primary);"></div></div>
+      <span class="bar-value">${item.total}</span>
+    </div>
+  `).join('');
+}
+
+// Dona con los reportes pendientes, en revision y resueltos
+function renderReportsDonut(counts) {
+  const box = document.getElementById('chart-reports');
+  if (!box) return;
+  const parts = [
+    { key: 'pendiente', label: 'Pendientes', color: '#bd443b' },
+    { key: 'en revision', label: 'En revision', color: '#d99a1f' },
+    { key: 'resuelto', label: 'Resueltos', color: '#287a4b' }
+  ];
+  const total = parts.reduce((sum, p) => sum + (counts[p.key] || 0), 0);
+  if (total === 0) {
+    box.innerHTML = '<div class="chart-empty">No hay reportes. Todo marcha bien.</div>';
+    return;
+  }
+  const radius = 42;
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
+  const arcs = parts.map(p => {
+    const value = counts[p.key] || 0;
+    const length = value / total * circumference;
+    const arc = `<circle cx="60" cy="60" r="${radius}" fill="none" stroke="${p.color}" stroke-width="16" stroke-dasharray="${length} ${circumference - length}" stroke-dashoffset="${-offset}" transform="rotate(-90 60 60)"/>`;
+    offset += length;
+    return arc;
+  }).join('');
+  box.innerHTML = `
+    <div class="donut-wrap">
+      <svg viewBox="0 0 120 120" class="donut-svg" role="img" aria-label="Reportes por estado">
+        <circle cx="60" cy="60" r="${radius}" fill="none" stroke="#e8eef5" stroke-width="16"/>
+        ${arcs}
+        <text x="60" y="58" text-anchor="middle" class="donut-total">${total}</text>
+        <text x="60" y="73" text-anchor="middle" class="donut-caption">reportes</text>
+      </svg>
+      <ul class="donut-legend">
+        ${parts.map(p => `<li><span class="legend-dot" style="background: ${p.color};"></span>${p.label}<strong>${counts[p.key] || 0}</strong></li>`).join('')}
+      </ul>
+    </div>
+  `;
 }
 
 // Carga la tabla de eventos para el admin
@@ -113,10 +225,17 @@ async function loadEvents() {
 
     if (events.length === 0) {
       tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No hay eventos creados todavia.</td></tr>`;
+      renderAdminEventsPagination(0);
       return;
     }
 
-    tbody.innerHTML = events.map(e => {
+    const totalPages = Math.ceil(events.length / ADMIN_EVENTS_PER_PAGE);
+    adminEventsPage = Math.min(Math.max(adminEventsPage, 1), totalPages);
+    const startIndex = (adminEventsPage - 1) * ADMIN_EVENTS_PER_PAGE;
+    const pageEvents = events.slice(startIndex, startIndex + ADMIN_EVENTS_PER_PAGE);
+    renderAdminEventsPagination(events.length);
+
+    tbody.innerHTML = pageEvents.map(e => {
       const imgThumb = e.imagen_url
         ? `<img src="${e.imagen_url}" style="width: 44px; height: 34px; object-fit: cover; border-radius: 4px;">`
         : `<span style="font-size: 0.75rem; color: var(--text-muted);">Sin foto</span>`;
@@ -155,6 +274,35 @@ async function loadEvents() {
   } catch (err) {
     showToast('Error al cargar eventos', 'error');
   }
+}
+
+// Botones para pasar entre paginas de la tabla de eventos
+function renderAdminEventsPagination(total) {
+  const box = document.getElementById('admin-events-pagination');
+  if (!box) return;
+  const totalPages = Math.ceil(total / ADMIN_EVENTS_PER_PAGE);
+  if (totalPages <= 1) {
+    box.innerHTML = total ? `<span class="pagination-info">${total} eventos</span>` : '';
+    return;
+  }
+  const first = (adminEventsPage - 1) * ADMIN_EVENTS_PER_PAGE + 1;
+  const last = Math.min(adminEventsPage * ADMIN_EVENTS_PER_PAGE, total);
+  const numbers = Array.from({ length: totalPages }, (_, i) => i + 1).map(n => `
+    <button type="button" class="page-btn ${n === adminEventsPage ? 'active' : ''}" onclick="goToEventsPage(${n})" aria-label="Pagina ${n}">${n}</button>
+  `).join('');
+  box.innerHTML = `
+    <span class="pagination-info">Mostrando ${first}-${last} de ${total} eventos</span>
+    <div class="pagination-controls">
+      <button type="button" class="page-btn" onclick="goToEventsPage(${adminEventsPage - 1})" ${adminEventsPage === 1 ? 'disabled' : ''}>Anterior</button>
+      ${numbers}
+      <button type="button" class="page-btn" onclick="goToEventsPage(${adminEventsPage + 1})" ${adminEventsPage === totalPages ? 'disabled' : ''}>Siguiente</button>
+    </div>
+  `;
+}
+
+function goToEventsPage(page) {
+  adminEventsPage = page;
+  loadEvents();
 }
 
 // Abre el modal para crear un evento nuevo
@@ -436,7 +584,6 @@ async function loadUsers() {
 
       return `
         <tr>
-          <td><strong>#${u.id}</strong></td>
           <td>${u.nombre}</td>
           <td>${u.email}</td>
           <td>${roleBadge}</td>
@@ -475,6 +622,15 @@ async function loadProblems() {
 
   try {
     const problems = await API.get('/api/reportes');
+    const summary = document.getElementById('report-summary');
+    if (summary) {
+      const count = estado => problems.filter(p => p.estado === estado).length;
+      summary.innerHTML = `
+        <div class="report-summary-item status-pendiente"><strong>${count('pendiente')}</strong><span>Pendientes</span></div>
+        <div class="report-summary-item status-revision"><strong>${count('en revision')}</strong><span>En revision</span></div>
+        <div class="report-summary-item status-resuelto"><strong>${count('resuelto')}</strong><span>Resueltos</span></div>
+      `;
+    }
     if (problems.length === 0) {
       container.innerHTML = `<div class="empty-state">No hay inconvenientes reportados. Todo marcha bien!</div>`;
       return;
@@ -551,6 +707,34 @@ async function loadSurveys() {
   }
 }
 
+// Opciones de seleccion para las preguntas cerradas de la encuesta
+function applySurveyPreset(n) {
+  const select = document.getElementById(`survey-preset-${n}`);
+  const input = document.getElementById(`survey-opt${n}`);
+  if (!select || !input) return;
+  const custom = select.value === 'custom';
+  input.style.display = custom ? 'block' : 'none';
+  if (!custom) input.value = select.value;
+  renderOptionChips(n);
+}
+
+function renderOptionChips(n) {
+  const chips = document.getElementById(`survey-chips-${n}`);
+  const input = document.getElementById(`survey-opt${n}`);
+  if (!chips || !input) return;
+  chips.innerHTML = input.value.split(',').map(o => o.trim()).filter(Boolean)
+    .map(o => `<span class="option-chip">${escapeHtml(o)}</span>`).join('');
+}
+
+function initSurveyPresets() {
+  const q2 = document.getElementById('survey-preset-2');
+  if (q2) q2.value = 'Sí,Tal vez,No';
+  applySurveyPreset(1);
+  applySurveyPreset(2);
+  document.getElementById('survey-opt1')?.addEventListener('input', () => renderOptionChips(1));
+  document.getElementById('survey-opt2')?.addEventListener('input', () => renderOptionChips(2));
+}
+
 function openCreateSurveyModal() {
   const select = document.getElementById('survey-event-id');
   select.innerHTML = '<option value="">Selecciona el evento...</option>' +
@@ -568,6 +752,10 @@ function setupSurveyForm() {
     const titulo = document.getElementById('survey-title').value.trim();
     const pregunta_1 = document.getElementById('survey-q1').value.trim();
     const opciones_1 = document.getElementById('survey-opt1').value.trim();
+    if (opciones_1.split(',').filter(o => o.trim()).length < 2) {
+      showToast('La pregunta 1 necesita al menos dos opciones de seleccion', 'error');
+      return;
+    }
     const pregunta_2 = document.getElementById('survey-q2').value.trim();
     const opciones_2 = document.getElementById('survey-opt2').value.trim();
     const pregunta_abierta = document.getElementById('survey-qopen').value.trim();

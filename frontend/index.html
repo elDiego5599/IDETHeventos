@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/styles.css?v=6">
+  <link rel="stylesheet" href="/static/css/styles.css?v=7">
 </head>
 <body>
 
@@ -19,7 +19,7 @@
       </a>
 
       <div class="nav-buttons" id="nav-auth-buttons">
-        <a href="/login" class="btn btn-outline btn-sm">Iniciar Sesion</a>
+        <a href="/login" class="btn btn-outline btn-sm">Iniciar Sesión</a>
         <a href="/register" class="btn btn-primary btn-sm">Registrarse</a>
       </div>
     </div>
@@ -62,6 +62,13 @@
         <input type="text" id="main-search-input" class="search-input" placeholder="Buscar evento por nombre, deporte, arte...">
       </div>
 
+      <div class="date-filter">
+        <label class="date-filter-label" for="filter-date-from">Desde</label>
+        <input type="date" id="filter-date-from" class="date-input">
+        <label class="date-filter-label" for="filter-date-to">Hasta</label>
+        <input type="date" id="filter-date-to" class="date-input">
+        <button type="button" id="filter-date-clear" class="btn btn-outline btn-sm">Limpiar fecha</button>
+      </div>
       <div class="filters-bar">
         <button class="filter-btn main-filter-btn active" data-filter="todos">Todos</button>
         <button class="filter-btn main-filter-btn" data-filter="proximos">Proximos</button>
@@ -97,7 +104,7 @@
     </div>
   </footer>
 
-  <script src="/static/js/utils.js?v=3"></script>
-  <script src="/static/js/app.js?v=3"></script>
+  <script src="/static/js/utils.js?v=4"></script>
+  <script src="/static/js/app.js?v=4"></script>
 </body>
 </html>

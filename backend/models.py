@@ -33,7 +33,7 @@ def validar_registro(data):
         return None, "El correo no es valido."
     password = str(data.get("password") or "")
     if len(password) < 6:
-        return None, "La contrasena debe tener al menos 6 caracteres."
+        return None, "La contraseña debe tener al menos 6 caracteres."
     return {"nombre": nombre, "email": email, "password": password}, None
 
 
@@ -46,7 +46,7 @@ def validar_login(data):
         return None, "El correo no es valido."
     password = str(data.get("password") or "")
     if not password:
-        return None, "La contrasena es obligatoria."
+        return None, "La contraseña es obligatoria."
     return {"email": email, "password": password}, None
 
 

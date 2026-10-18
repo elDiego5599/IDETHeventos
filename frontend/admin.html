@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/styles.css?v=6">
-  <link rel="stylesheet" href="/static/css/dashboard.css?v=3">
+  <link rel="stylesheet" href="/static/css/styles.css?v=7">
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=4">
 </head>
 <body>
 
@@ -20,7 +20,7 @@
       </a>
       <div class="nav-buttons">
         <span class="nav-user-info" id="admin-badge-name">Administrador</span>
-        <button onclick="logoutUser()" class="btn btn-outline btn-sm">Cerrar Sesion</button>
+        <button onclick="logoutUser()" class="btn btn-outline btn-sm">Cerrar Sesión</button>
       </div>
     </div>
   </header>
@@ -36,31 +36,84 @@
   </div>
 
   <main class="container page-bottom">
-    <!-- Estadisticas -->
+    <!-- Resumen visual -->
     <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-info-number" id="stat-events">0</div>
-        <div class="stat-info-label">Eventos</div>
+      <div class="stat-card stat-blue">
+        <div class="stat-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+        <div>
+          <div class="stat-info-number" id="stat-events">0</div>
+          <div class="stat-info-label">Eventos</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-info-number" id="stat-students">0</div>
-        <div class="stat-info-label">Estudiantes</div>
+      <div class="stat-card stat-green">
+        <div class="stat-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.7a3.5 3.5 0 0 1 0 6.6M18 14.8c2 .6 3.2 2.3 3.5 5.2"/></svg></div>
+        <div>
+          <div class="stat-info-number" id="stat-students">0</div>
+          <div class="stat-info-label">Estudiantes</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-info-number" id="stat-inscriptions">0</div>
-        <div class="stat-info-label">Inscripciones</div>
+      <div class="stat-card stat-orange">
+        <div class="stat-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/></svg></div>
+        <div>
+          <div class="stat-info-number" id="stat-inscriptions">0</div>
+          <div class="stat-info-label">Inscripciones</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-info-number" id="stat-problems">0</div>
-        <div class="stat-info-label">Problemas Reportados</div>
+      <div class="stat-card stat-red">
+        <div class="stat-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.5 20h19z"/><path d="M12 10v4.5M12 17.5v.01"/></svg></div>
+        <div>
+          <div class="stat-info-number" id="stat-problems">0</div>
+          <div class="stat-info-label">Problemas reportados</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-info-number" id="stat-surveys">0</div>
-        <div class="stat-info-label">Encuestas</div>
+      <div class="stat-card stat-purple">
+        <div class="stat-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></div>
+        <div>
+          <div class="stat-info-number" id="stat-surveys">0</div>
+          <div class="stat-info-label">Encuestas</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-info-number" id="stat-suggestions">0</div>
-        <div class="stat-info-label">Sugerencias</div>
+      <div class="stat-card stat-teal">
+        <div class="stat-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg></div>
+        <div>
+          <div class="stat-info-number" id="stat-suggestions">0</div>
+          <div class="stat-info-label">Sugerencias</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="attention-panel" id="attention-panel">
+      <div class="attention-item attention-event" id="attention-event">
+        <span class="attention-kicker">Proximo evento</span>
+        <strong class="attention-title" id="attention-event-title">Sin eventos proximos</strong>
+        <span class="attention-sub" id="attention-event-sub"></span>
+      </div>
+      <div class="attention-item attention-reports" id="attention-reports">
+        <span class="attention-kicker">Solicitudes pendientes</span>
+        <strong class="attention-number" id="attention-reports-number">0</strong>
+        <span class="attention-sub">Reportes sin resolver</span>
+        <button type="button" class="btn btn-outline btn-sm" onclick="goToAdminTab('tab-admin-problemas')">Revisar reportes</button>
+      </div>
+      <div class="attention-item attention-suggestions" id="attention-suggestions">
+        <span class="attention-kicker">Buzon</span>
+        <strong class="attention-number" id="attention-suggestions-number">0</strong>
+        <span class="attention-sub">Sugerencias por revisar</span>
+        <button type="button" class="btn btn-outline btn-sm" onclick="goToAdminTab('tab-admin-sugerencias')">Ver sugerencias</button>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3 class="chart-title">Eventos por categoria</h3>
+        <div id="chart-categories"></div>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">Inscripciones por evento</h3>
+        <div id="chart-top-events"></div>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">Reportes por estado</h3>
+        <div id="chart-reports"></div>
       </div>
     </div>
 
@@ -95,6 +148,7 @@
           </tbody>
         </table>
       </div>
+      <div class="pagination" id="admin-events-pagination"></div>
     </div>
 
     <!-- Pestaña Catálogos -->
@@ -147,7 +201,6 @@
         <table class="admin-table">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Nombre</th>
               <th>Email</th>
               <th>Rol</th>
@@ -163,11 +216,14 @@
 
     <!-- Pestaña Problemas Reportados -->
     <div class="admin-tab-pane" id="tab-admin-problemas">
-      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 14px;">
-        Inconvenientes y dificultades reportados por los estudiantes en los eventos para mejorar la convivencia y logistica del colegio.
-      </p>
-      <div id="admin-problems-container">
-        <!-- Renderizado por admin.js -->
+      <div class="reports-center">
+        <p class="reports-intro">
+          Inconvenientes y dificultades reportados por los estudiantes en los eventos para mejorar la convivencia y logistica del colegio.
+        </p>
+        <div class="report-summary" id="report-summary"></div>
+        <div id="admin-problems-container">
+          <!-- Renderizado por admin.js -->
+        </div>
       </div>
     </div>
 
@@ -343,14 +399,34 @@
           <div class="form-group">
             <label class="form-label">Pregunta Cerrada 1</label>
             <input type="text" id="survey-q1" class="form-control" value="¿Como calificarias la organizacion y puntualidad del evento?" required>
-            <label class="form-label" style="font-size: 0.76rem; margin-top: 4px;">Opciones separadas por coma:</label>
-            <input type="text" id="survey-opt1" class="form-control" value="Excelente,Buena,Regular,Mala" required>
+            <label class="form-label" style="font-size: 0.76rem; margin-top: 4px;">Opciones de seleccion:</label>
+            <select id="survey-preset-1" class="form-control" onchange="applySurveyPreset(1)">
+              <option value="Excelente,Buena,Regular,Mala">Calidad: Excelente / Buena / Regular / Mala</option>
+              <option value="Muy satisfecho,Satisfecho,Poco satisfecho,Insatisfecho">Satisfaccion: Muy satisfecho a Insatisfecho</option>
+              <option value="Totalmente de acuerdo,De acuerdo,En desacuerdo,Totalmente en desacuerdo">Acuerdo: Totalmente de acuerdo a Totalmente en desacuerdo</option>
+              <option value="Sí,Tal vez,No">Sí / Tal vez / No</option>
+              <option value="Sí,No">Sí / No</option>
+              <option value="1,2,3,4,5">Escala del 1 al 5</option>
+              <option value="custom">Personalizada...</option>
+            </select>
+            <div class="option-chips" id="survey-chips-1"></div>
+            <input type="text" id="survey-opt1" class="form-control" value="Excelente,Buena,Regular,Mala" placeholder="Escribe las opciones separadas por coma" style="display: none; margin-top: 6px;">
           </div>
           <div class="form-group">
             <label class="form-label">Pregunta Cerrada 2 (Opcional)</label>
             <input type="text" id="survey-q2" class="form-control" value="¿Te gustaria volver a participar en una actividad similar?">
-            <label class="form-label" style="font-size: 0.76rem; margin-top: 4px;">Opciones separadas por coma:</label>
-            <input type="text" id="survey-opt2" class="form-control" value="Si,Tal vez,No">
+            <label class="form-label" style="font-size: 0.76rem; margin-top: 4px;">Opciones de seleccion:</label>
+            <select id="survey-preset-2" class="form-control" onchange="applySurveyPreset(2)">
+              <option value="Excelente,Buena,Regular,Mala">Calidad: Excelente / Buena / Regular / Mala</option>
+              <option value="Muy satisfecho,Satisfecho,Poco satisfecho,Insatisfecho">Satisfaccion: Muy satisfecho a Insatisfecho</option>
+              <option value="Totalmente de acuerdo,De acuerdo,En desacuerdo,Totalmente en desacuerdo">Acuerdo: Totalmente de acuerdo a Totalmente en desacuerdo</option>
+              <option value="Sí,Tal vez,No">Sí / Tal vez / No</option>
+              <option value="Sí,No">Sí / No</option>
+              <option value="1,2,3,4,5">Escala del 1 al 5</option>
+              <option value="custom">Personalizada...</option>
+            </select>
+            <div class="option-chips" id="survey-chips-2"></div>
+            <input type="text" id="survey-opt2" class="form-control" value="Sí,Tal vez,No" placeholder="Escribe las opciones separadas por coma" style="display: none; margin-top: 6px;">
           </div>
           <div class="form-group">
             <label class="form-label">Pregunta Abierta (Para expresarse libremente)</label>
@@ -387,7 +463,7 @@
     </div>
   </footer>
 
-  <script src="/static/js/utils.js?v=3"></script>
-  <script src="/static/js/admin.js?v=3"></script>
+  <script src="/static/js/utils.js?v=4"></script>
+  <script src="/static/js/admin.js?v=4"></script>
 </body>
 </html>

@@ -109,7 +109,7 @@ python -m backend.main
 
 Cuando el servidor arranca por primera vez crea estos usuarios automaticamente:
 
-| Rol | Correo | Contrasena |
+| Rol | Correo | Contraseña |
 | :--- | :--- | :--- |
 | **Administrador** | `admin@ideth.edu` | `admin123` |
 | **Estudiante** | `estudiante@ideth.edu` | `estudiante123` |

@@ -529,3 +529,137 @@
   font-size: 0.86rem;
 }
 
+
+/* ---------- Panel admin: metricas llamativas ---------- */
+.stats-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.stat-card {
+  --stat-color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border: none;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--stat-color), color-mix(in srgb, var(--stat-color) 62%, #000));
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--stat-color) 32%, transparent);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.stat-card:hover { transform: translateY(-3px); }
+.stat-blue { --stat-color: #275da8; }
+.stat-green { --stat-color: #287a4b; }
+.stat-orange { --stat-color: #d9663f; }
+.stat-red { --stat-color: #bd443b; }
+.stat-purple { --stat-color: #6b4fb5; }
+.stat-teal { --stat-color: #1f8a91; }
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.stat-card .stat-info-number { color: #ffffff; font-size: 2rem; line-height: 1; }
+.stat-card .stat-info-label { color: rgba(255, 255, 255, 0.88); margin-top: 4px; }
+
+/* ---------- Panel admin: avisos centrados ---------- */
+.attention-panel {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.attention-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  padding: 22px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.attention-kicker { font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.attention-title { font-family: Georgia, 'Times New Roman', serif; font-size: 1.3rem; line-height: 1.25; }
+.attention-number { font-size: 2.6rem; font-weight: 800; line-height: 1; color: var(--success); }
+.attention-sub { font-size: 0.86rem; color: var(--text-muted); }
+.attention-event { background: var(--primary-light); border-color: #bcd2ec; }
+.attention-event .attention-kicker { color: var(--primary); }
+.attention-item.has-pending { border-color: #f1b7a6; background: var(--accent-light); }
+.attention-item.has-pending .attention-number { color: var(--danger); }
+
+/* ---------- Panel admin: graficos ---------- */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+.chart-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 14px; }
+.chart-empty { color: var(--text-muted); font-size: 0.86rem; padding: 18px 0; text-align: center; }
+.bar-row { display: grid; grid-template-columns: minmax(70px, 38%) 1fr 28px; align-items: center; gap: 8px; margin-bottom: 10px; }
+.bar-label { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-track { height: 12px; background: #e8eef5; border-radius: 99px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 99px; }
+.bar-value { font-size: 0.82rem; font-weight: 800; text-align: right; }
+.donut-wrap { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; }
+.donut-svg { width: 130px; height: 130px; }
+.donut-total { font-size: 22px; font-weight: 800; fill: var(--text-main); }
+.donut-caption { font-size: 9px; fill: var(--text-muted); }
+.donut-legend { list-style: none; display: grid; gap: 8px; font-size: 0.84rem; }
+.donut-legend li { display: flex; align-items: center; gap: 8px; }
+.donut-legend strong { margin-left: auto; padding-left: 12px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+/* ---------- Paginacion ---------- */
+.pagination { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.pagination-info { font-size: 0.84rem; color: var(--text-muted); }
+.pagination-controls { display: flex; gap: 6px; flex-wrap: wrap; }
+.page-btn {
+  min-width: 36px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.page-btn:hover:not(:disabled) { background: var(--primary-light); }
+.page-btn.active { background: var(--primary); border-color: var(--primary); color: #ffffff; }
+.page-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ---------- Reportes centrados y proporcionados ---------- */
+.reports-center { max-width: 820px; margin: 0 auto; }
+.reports-intro { text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px; }
+.report-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+.report-summary-item { display: flex; flex-direction: column; align-items: center; padding: 14px 8px; border-radius: var(--radius); }
+.report-summary-item strong { font-size: 1.7rem; line-height: 1.1; }
+.report-summary-item span { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
+.reports-center .report-card { padding: 18px 20px; }
+.suggestion-card { margin-left: auto; margin-right: auto; }
+#tab-reportar-problema .suggestion-card, #tab-sugerencias .suggestion-card { max-width: 650px; }
+#admin-suggestions-container { max-width: 820px; margin: 0 auto; }
+
+/* ---------- Opciones de seleccion de la encuesta ---------- */
+.option-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.option-chip { padding: 3px 10px; border-radius: 99px; background: var(--primary-light); color: var(--primary); font-size: 0.78rem; font-weight: 700; }
+
+@media (max-width: 860px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 760px) {
+  .attention-panel { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}
