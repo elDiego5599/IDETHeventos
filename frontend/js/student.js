@@ -57,6 +57,7 @@ function setupStudentSearch() {
   if (input) {
     input.addEventListener('input', () => applyStudentFilters());
   }
+  setupDateFilter('student-date-from', 'student-date-to', 'student-date-clear', applyStudentFilters);
 }
 
 // Carga los datos principales del panel
@@ -99,6 +100,12 @@ function applyStudentFilters() {
     filtered = filtered.filter(e => e.estado === 'activo');
   } else if (currentFilter === 'pasados') {
     filtered = filtered.filter(e => e.es_pasado || e.estado === 'pasado');
+  }
+
+  const dateFrom = document.getElementById('student-date-from')?.value || '';
+  const dateTo = document.getElementById('student-date-to')?.value || '';
+  if (dateFrom || dateTo) {
+    filtered = filtered.filter(e => matchesDateRange(e, dateFrom, dateTo));
   }
 
   if (searchVal) {
@@ -255,12 +262,15 @@ function renderStudentEvents(events) {
         </div>
         <div class="event-card-body">
           <h3 class="event-card-title">${e.titulo}</h3>
-          ${mottoHtml}
-          <p class="event-card-desc">${e.descripcion || 'Actividad deportiva escolar.'}</p>
           <div class="event-meta">
-            <div><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Cancha Principal'}</div>
             <div><strong>Fecha:</strong> ${e.fecha}</div>
           </div>
+          <div class="event-card-extra">
+            ${mottoHtml}
+            <p class="event-card-desc">${e.descripcion || 'Actividad deportiva escolar.'}</p>
+            <div class="event-card-place"><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Cancha Principal'}</div>
+          </div>
+          <button type="button" class="event-toggle" aria-expanded="false" onclick="toggleEventCard(this)">Ver más información</button>
         </div>
         <div class="event-card-footer">
           <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">

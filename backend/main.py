@@ -123,7 +123,7 @@ def login():
         cursor.execute("SELECT id, nombre, email, password_hash, rol FROM usuarios WHERE email = %s", (data["email"],))
         user = cursor.fetchone()
     if not user or not verify_password(data["password"], user["password_hash"]):
-        return error("Correo o contrasena incorrectos.", 401)
+        return error("Correo o contraseña incorrectos.", 401)
     public_user = {"id": user["id"], "nombre": user["nombre"], "email": user["email"], "rol": user["rol"]}
     return jsonify({"mensaje": f"Bienvenido, {user['nombre']}", "token": create_access_token({"sub": user["id"], "rol": user["rol"]}), "usuario": public_user})
 
@@ -616,6 +616,23 @@ def stats():
         for key, table, where in (("total_eventos", "eventos", ""), ("total_estudiantes", "usuarios", " WHERE rol='estudiante'"), ("total_inscripciones", "inscripciones", ""), ("total_sugerencias", "sugerencias", ""), ("total_problemas", "reportes_problemas", ""), ("total_encuestas", "encuestas", "")):
             cursor.execute(f"SELECT COUNT(*) AS total FROM {table}{where}")
             values[key] = cursor.fetchone()["total"]
+        # Datos para las graficas del panel de administracion
+        cursor.execute("""SELECT COALESCE(c.nombre, 'Sin categoria') AS nombre, COUNT(e.id) AS total
+                          FROM eventos e LEFT JOIN categorias c ON e.categoria_id = c.id
+                          GROUP BY c.nombre ORDER BY total DESC, nombre""")
+        values["eventos_por_categoria"] = [dict(row) for row in cursor.fetchall()]
+        cursor.execute("SELECT estado, COUNT(*) AS total FROM reportes_problemas GROUP BY estado")
+        values["reportes_por_estado"] = {row["estado"]: row["total"] for row in cursor.fetchall()}
+        cursor.execute("""SELECT e.titulo, COUNT(i.id) AS total FROM eventos e
+                          LEFT JOIN inscripciones i ON i.evento_id = e.id
+                          GROUP BY e.id, e.titulo ORDER BY total DESC, e.fecha DESC LIMIT 5""")
+        values["inscripciones_por_evento"] = [dict(row) for row in cursor.fetchall()]
+        cursor.execute("""SELECT e.titulo, e.fecha, COUNT(i.id) AS total_inscritos FROM eventos e
+                          LEFT JOIN inscripciones i ON i.evento_id = e.id
+                          WHERE e.fecha >= %s GROUP BY e.id, e.titulo, e.fecha
+                          ORDER BY e.fecha ASC LIMIT 1""", (datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),))
+        next_event = cursor.fetchone()
+        values["proximo_evento"] = {**dict(next_event), "fecha": format_date(next_event["fecha"])} if next_event else None
     return jsonify(values)
 
 

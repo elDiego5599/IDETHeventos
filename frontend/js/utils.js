@@ -128,3 +128,34 @@ function formatDate(str) {
   if (!str) return 'Por confirmar';
   return str;
 }
+
+// Muestra u oculta la informacion extra de una tarjeta de evento
+function toggleEventCard(btn) {
+  const card = btn.closest('.event-card');
+  if (!card) return;
+  const expanded = card.classList.toggle('expanded');
+  btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  btn.textContent = expanded ? 'Ver menos' : 'Ver más información';
+}
+
+// Revisa si la fecha del evento cae dentro del rango elegido (formato AAAA-MM-DD)
+function matchesDateRange(event, from, to) {
+  const day = (event.fecha || '').slice(0, 10);
+  if (!day) return !from && !to;
+  if (from && day < from) return false;
+  if (to && day > to) return false;
+  return true;
+}
+
+// Conecta los campos de fecha y el boton de limpiar con una funcion de filtrado
+function setupDateFilter(fromId, toId, clearId, onChange) {
+  const from = document.getElementById(fromId);
+  const to = document.getElementById(toId);
+  const clear = document.getElementById(clearId);
+  [from, to].forEach(input => input?.addEventListener('change', onChange));
+  clear?.addEventListener('click', () => {
+    if (from) from.value = '';
+    if (to) to.value = '';
+    onChange();
+  });
+}

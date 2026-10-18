@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/styles.css?v=6">
-  <link rel="stylesheet" href="/static/css/dashboard.css?v=3">
+  <link rel="stylesheet" href="/static/css/styles.css?v=7">
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=4">
 </head>
 <body>
 
@@ -20,7 +20,7 @@
       </a>
       <div class="nav-buttons">
         <span class="nav-user-info" id="student-badge-name">Estudiante</span>
-        <button onclick="logoutUser()" class="btn btn-outline btn-sm">Cerrar Sesion</button>
+        <button onclick="logoutUser()" class="btn btn-outline btn-sm">Cerrar Sesión</button>
       </div>
     </div>
   </header>
@@ -54,6 +54,13 @@
         <input type="text" id="student-search-input" class="search-input" placeholder="Buscar por nombre, zona (cancha, auditorio), categoria...">
       </div>
 
+      <div class="date-filter">
+        <label class="date-filter-label" for="student-date-from">Desde</label>
+        <input type="date" id="student-date-from" class="date-input">
+        <label class="date-filter-label" for="student-date-to">Hasta</label>
+        <input type="date" id="student-date-to" class="date-input">
+        <button type="button" id="student-date-clear" class="btn btn-outline btn-sm">Limpiar fecha</button>
+      </div>
       <div class="filters-bar">
         <button class="filter-btn active" onclick="filterEvents('todos', this)">Todos</button>
         <button class="filter-btn" onclick="filterEvents('proximos', this)">Proximos</button>
@@ -247,7 +254,7 @@
     </div>
   </footer>
 
-  <script src="/static/js/utils.js?v=3"></script>
-  <script src="/static/js/student.js?v=3"></script>
+  <script src="/static/js/utils.js?v=4"></script>
+  <script src="/static/js/student.js?v=4"></script>
 </body>
 </html>

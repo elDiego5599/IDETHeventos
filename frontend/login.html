@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Iniciar Sesion | IDETHeventos</title>
+  <title>Iniciar Sesión | IDETHeventos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/styles.css?v=6">
+  <link rel="stylesheet" href="/static/css/styles.css?v=7">
 </head>
 <body>
 
@@ -27,8 +27,8 @@
     <div class="auth-card">
       <div class="auth-card-header">
         <img src="/static/img/logoColegio.jpeg" alt="Logo Colegio" class="auth-logo">
-        <h1 class="auth-title">Iniciar Sesion</h1>
-        <p class="auth-subtitle">Ingresa con tu correo y contrasena</p>
+        <h1 class="auth-title">Iniciar Sesión</h1>
+        <p class="auth-subtitle">Ingresa con tu correo y contraseña</p>
       </div>
 
       <form id="login-form">
@@ -39,8 +39,8 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="login-password">Contrasena</label>
-          <input type="password" id="login-password" class="form-control" placeholder="Tu contrasena" required>
+          <label class="form-label" for="login-password">Contraseña</label>
+          <input type="password" id="login-password" class="form-control" placeholder="Tu contraseña" required>
           <p class="form-hint">Prueba: admin123 o estudiante123</p>
         </div>
 
@@ -62,7 +62,7 @@
     </div>
   </footer>
 
-  <script src="/static/js/utils.js?v=3"></script>
+  <script src="/static/js/utils.js?v=4"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (AuthStorage.isLoggedIn()) {

@@ -152,6 +152,13 @@ function applyCurrentFilters() {
     filtered = filtered.filter(e => e.es_pasado || e.estado === 'pasado');
   }
 
+  // Filtro por fecha (desde / hasta)
+  const dateFrom = document.getElementById('filter-date-from')?.value || '';
+  const dateTo = document.getElementById('filter-date-to')?.value || '';
+  if (dateFrom || dateTo) {
+    filtered = filtered.filter(e => matchesDateRange(e, dateFrom, dateTo));
+  }
+
   // Buscador por texto en tiempo real
   if (searchVal) {
     filtered = filtered.filter(e =>
@@ -171,6 +178,7 @@ function setupSearchInput() {
   if (input) {
     input.addEventListener('input', () => applyCurrentFilters());
   }
+  setupDateFilter('filter-date-from', 'filter-date-to', 'filter-date-clear', applyCurrentFilters);
 }
 
 // Imagen del evento, vacio si no tiene foto (la tarjeta va sin imagen)
@@ -228,12 +236,15 @@ function renderEvents(events) {
         </div>
         <div class="event-card-body">
           <h3 class="event-card-title">${e.titulo}</h3>
-          ${mottoHtml}
-          <p class="event-card-desc">${e.descripcion || 'Actividad deportiva escolar.'}</p>
           <div class="event-meta">
-            <div><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Cancha Principal'}</div>
             <div><strong>Fecha:</strong> ${e.fecha}</div>
           </div>
+          <div class="event-card-extra">
+            ${mottoHtml}
+            <p class="event-card-desc">${e.descripcion || 'Actividad deportiva escolar.'}</p>
+            <div class="event-card-place"><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Cancha Principal'}</div>
+          </div>
+          <button type="button" class="event-toggle" aria-expanded="false" onclick="toggleEventCard(this)">Ver más información</button>
         </div>
         <div class="event-card-footer">
           <span class="event-enrollment-count">
