@@ -196,20 +196,20 @@ function renderEvents(events) {
   if (!container) return;
 
   if (events.length === 0) {
-    container.innerHTML = `<div class="empty-state">No se encontraron eventos con este criterio de busqueda.</div>`;
+    container.innerHTML = `<div class="empty-state">No hay eventos.</div>`;
     return;
   }
 
   container.innerHTML = events.map(e => {
-    let statusBadge = '<span class="badge badge-upcoming">Proximo</span>';
+    let statusBadge = '<span class="badge badge-upcoming">Próximo</span>';
     if (e.estado === 'activo') {
-      statusBadge = '<span class="badge badge-active">En Vivo / Hoy</span>';
+      statusBadge = '<span class="badge badge-active">Hoy</span>';
     } else if (e.es_pasado || e.estado === 'pasado') {
       statusBadge = '<span class="badge badge-past">Finalizado</span>';
     }
 
     const volunteerBadge = e.permite_voluntarios
-      ? '<span class="badge badge-volunteer">Voluntariado</span>'
+      ? '<span class="badge badge-volunteer">Voluntarios</span>'
       : '';
 
     const categoryBadge = `<span class="badge badge-category">${e.categoria_nombre || 'Deportes'}</span>`;
@@ -241,7 +241,7 @@ function renderEvents(events) {
           </div>
           <div class="event-card-extra">
             ${mottoHtml}
-            <p class="event-card-desc">${e.descripcion || 'Actividad deportiva escolar.'}</p>
+            <p class="event-card-desc">${e.descripcion || ''}</p>
             <div class="event-card-place"><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Cancha Principal'}</div>
           </div>
           <button type="button" class="event-toggle" aria-expanded="false" onclick="toggleEventCard(this)">Ver más información</button>
@@ -250,7 +250,7 @@ function renderEvents(events) {
           <span class="event-enrollment-count">
             ${e.total_inscritos || 0} inscritos
           </span>
-          <button onclick="openPublicEventDetail(${e.id})" class="btn btn-outline btn-sm">Ver Detalle</button>
+          <button onclick="openPublicEventDetail(${e.id})" class="btn btn-outline btn-sm">Ver detalle</button>
         </div>
       </div>
     `;
@@ -282,15 +282,15 @@ async function openPublicEventDetail(id) {
       : '';
 
     // Badges
-    let statusBadge = '<span class="badge badge-upcoming">Proximo</span>';
+    let statusBadge = '<span class="badge badge-upcoming">Próximo</span>';
     if (e.estado === 'activo') {
-      statusBadge = '<span class="badge badge-active">En Vivo / Hoy</span>';
+      statusBadge = '<span class="badge badge-active">Hoy</span>';
     } else if (e.es_pasado || e.estado === 'pasado') {
       statusBadge = '<span class="badge badge-past">Finalizado</span>';
     }
 
     const volunteerBadge = e.permite_voluntarios
-      ? '<span class="badge badge-volunteer">Voluntariado</span>'
+      ? '<span class="badge badge-volunteer">Voluntarios</span>'
       : '';
 
     const mottoHtml = e.frase_motivacional
@@ -298,7 +298,7 @@ async function openPublicEventDetail(id) {
       : '';
 
     const summaryHtml = (e.es_pasado || e.estado === 'pasado') && e.resumen_pasado
-      ? `<div class="event-summary-box"><strong>Resumen:</strong> ${e.resumen_pasado}</div>`
+      ? `<div class="event-summary-box">${e.resumen_pasado}</div>`
       : '';
 
     document.getElementById('modal-detail-body').innerHTML = `
@@ -310,20 +310,20 @@ async function openPublicEventDetail(id) {
       </div>
       ${mottoHtml}
       ${summaryHtml}
-      <p class="modal-desc">${e.descripcion || 'Actividad deportiva escolar.'}</p>
+      <p class="modal-desc">${e.descripcion || ''}</p>
       <div class="event-meta modal-event-meta">
         <div><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Cancha Principal'}</div>
         <div><strong>Fecha:</strong> ${e.fecha}</div>
-        <div><strong>Inscritos:</strong> ${e.total_inscritos || 0} estudiantes</div>
+        <div><strong>Inscritos:</strong> ${e.total_inscritos || 0}</div>
       </div>
     `;
 
     const actionContainer = document.getElementById('modal-detail-action');
     if (AuthStorage.isLoggedIn()) {
       const user = AuthStorage.getUser();
-      actionContainer.innerHTML = `<a href="${user.rol === 'admin' ? '/admin' : '/dashboard'}" class="btn btn-primary btn-sm">Ir a mi panel de ${user.rol === 'admin' ? 'Administrador' : 'Estudiante'}</a>`;
+      actionContainer.innerHTML = `<a href="${user.rol === 'admin' ? '/admin' : '/dashboard'}" class="btn btn-primary btn-sm">Ir a mi panel</a>`;
     } else {
-      actionContainer.innerHTML = `<a href="/login" class="btn btn-primary btn-sm">Iniciar sesion para inscribirse u opinar</a>`;
+      actionContainer.innerHTML = `<a href="/login" class="btn btn-primary btn-sm">Iniciar sesión para inscribirte</a>`;
     }
 
     openModal('event-detail-modal');

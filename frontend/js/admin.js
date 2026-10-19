@@ -31,7 +31,7 @@ async function uploadEventImage(input) {
   formData.append('file', file);
 
   try {
-    showToast('Subiendo foto del evento...', 'info');
+    showToast('Subiendo foto...', 'info');
     const token = AuthStorage.getToken();
     const res = await fetch('/api/upload-imagen', {
       method: 'POST',
@@ -41,7 +41,7 @@ async function uploadEventImage(input) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Error al subir foto');
     document.getElementById('event-img-url').value = data.url;
-    showToast('Foto cargada exitosamente', 'success');
+    showToast('Foto cargada', 'success');
   } catch (err) {
     showToast(err.message, 'error');
   }
@@ -51,7 +51,7 @@ async function uploadEventImage(input) {
 document.addEventListener('DOMContentLoaded', async () => {
   const user = AuthStorage.getUser();
   if (!AuthStorage.isLoggedIn() || !user || user.rol !== 'admin') {
-    showToast('Acceso denegado: Se requiere rol de Administrador', 'error');
+    showToast('Acceso solo para administradores', 'error');
     setTimeout(() => { window.location.href = '/login'; }, 800);
     return;
   }
@@ -133,10 +133,10 @@ function renderAttentionPanel(stats) {
   document.getElementById('attention-suggestions').classList.toggle('has-pending', (stats.total_sugerencias || 0) > 0);
 
   const next = stats.proximo_evento;
-  document.getElementById('attention-event-title').textContent = next ? next.titulo : 'Sin eventos proximos';
+  document.getElementById('attention-event-title').textContent = next ? next.titulo : 'Sin eventos próximos';
   document.getElementById('attention-event-sub').textContent = next
     ? `${next.fecha} - ${next.total_inscritos} inscritos`
-    : 'Crea un evento para anunciarlo a los estudiantes.';
+    : 'Crea un evento.';
 }
 
 // Barras horizontales con un color por categoria
@@ -144,7 +144,7 @@ function renderCategoryChart(items) {
   const box = document.getElementById('chart-categories');
   if (!box) return;
   if (items.length === 0) {
-    box.innerHTML = '<div class="chart-empty">Aun no hay eventos.</div>';
+    box.innerHTML = '<div class="chart-empty">Sin eventos.</div>';
     return;
   }
   const max = Math.max(...items.map(i => i.total), 1);
@@ -162,7 +162,7 @@ function renderTopEventsChart(items) {
   const box = document.getElementById('chart-top-events');
   if (!box) return;
   if (items.length === 0 || items.every(i => i.total === 0)) {
-    box.innerHTML = '<div class="chart-empty">Todavia no hay inscripciones.</div>';
+    box.innerHTML = '<div class="chart-empty">Sin inscripciones.</div>';
     return;
   }
   const max = Math.max(...items.map(i => i.total), 1);
@@ -181,12 +181,12 @@ function renderReportsDonut(counts) {
   if (!box) return;
   const parts = [
     { key: 'pendiente', label: 'Pendientes', color: '#bd443b' },
-    { key: 'en revision', label: 'En revision', color: '#d99a1f' },
+    { key: 'en revision', label: 'En revisión', color: '#d99a1f' },
     { key: 'resuelto', label: 'Resueltos', color: '#287a4b' }
   ];
   const total = parts.reduce((sum, p) => sum + (counts[p.key] || 0), 0);
   if (total === 0) {
-    box.innerHTML = '<div class="chart-empty">No hay reportes. Todo marcha bien.</div>';
+    box.innerHTML = '<div class="chart-empty">Sin reportes.</div>';
     return;
   }
   const radius = 42;
@@ -224,7 +224,7 @@ async function loadEvents() {
     cachedEvents = events;
 
     if (events.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No hay eventos creados todavia.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No hay eventos.</td></tr>`;
       renderAdminEventsPagination(0);
       return;
     }
@@ -241,8 +241,8 @@ async function loadEvents() {
         : `<span style="font-size: 0.75rem; color: var(--text-muted);">Sin foto</span>`;
 
       const volunteerBadge = e.permite_voluntarios
-        ? '<span class="badge badge-volunteer">Si (Poemas/Staff)</span>'
-        : '<span style="font-size: 0.76rem; color: var(--text-muted);">Solo publico</span>';
+        ? '<span class="badge badge-volunteer">Sí</span>'
+        : '<span style="font-size: 0.76rem; color: var(--text-muted);">No</span>';
 
       return `
         <tr>
@@ -250,7 +250,7 @@ async function loadEvents() {
           <td>${imgThumb}</td>
           <td>
             <strong>${e.titulo}</strong>
-            ${e.estado === 'activo' ? '<span class="badge badge-active" style="margin-left: 4px;">En Vivo</span>' : ''}
+            ${e.estado === 'activo' ? '<span class="badge badge-active" style="margin-left: 4px;">Hoy</span>' : ''}
             ${e.es_pasado ? '<span class="badge badge-past" style="margin-left: 4px;">Finalizado</span>' : ''}
             ${e.frase_motivacional ? `<br><small style="color: var(--text-muted); font-style: italic;">"${e.frase_motivacional}"</small>` : ''}
           </td>
@@ -259,7 +259,7 @@ async function loadEvents() {
           <td>${volunteerBadge}</td>
           <td>
             <button onclick="viewEventInscriptions(${e.id}, '${e.titulo.replace(/'/g, "\\'")}')" class="btn btn-outline btn-sm" title="Ver lista de inscritos">
-              ${e.total_inscritos} inscritos
+              ${e.total_inscritos}
             </button>
           </td>
           <td>
@@ -272,7 +272,7 @@ async function loadEvents() {
       `;
     }).join('');
   } catch (err) {
-    showToast('Error al cargar eventos', 'error');
+    showToast('No se pudieron cargar los eventos', 'error');
   }
 }
 
@@ -308,7 +308,7 @@ function goToEventsPage(page) {
 // Abre el modal para crear un evento nuevo
 function openCreateEvent() {
   editingEventId = null;
-  document.getElementById('event-modal-title').textContent = 'Crear Evento Escolar';
+  document.getElementById('event-modal-title').textContent = 'Crear evento';
   document.getElementById('form-event-admin').reset();
   document.getElementById('event-id').value = '';
   document.getElementById('event-volunteers').checked = false;
@@ -322,7 +322,7 @@ async function openEditEvent(id) {
     const e = await API.get(`/api/eventos/${id}`);
     editingEventId = id;
 
-    document.getElementById('event-modal-title').textContent = `Editar Evento #${id}`;
+    document.getElementById('event-modal-title').textContent = `Editar evento`;
     document.getElementById('event-id').value = e.id;
     document.getElementById('event-titulo').value = e.titulo;
     document.getElementById('event-motto').value = e.frase_motivacional || '';
@@ -339,7 +339,7 @@ async function openEditEvent(id) {
 
     openModal('event-form-modal');
   } catch (err) {
-    showToast('Error al cargar datos del evento', 'error');
+    showToast('No se pudo cargar el evento', 'error');
   }
 }
 
@@ -400,26 +400,26 @@ function setupEventForm() {
 // Ver lista de inscritos por evento
 async function viewEventInscriptions(eventId, titulo) {
   try {
-    document.getElementById('inscriptions-modal-title').textContent = `Inscritos: ${titulo}`;
+    document.getElementById('inscriptions-modal-title').textContent = `${titulo}`;
     const tbody = document.getElementById('inscriptions-tbody');
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">Cargando inscritos...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">Cargando...</td></tr>`;
     openModal('event-inscriptions-modal');
 
     const list = await API.get(`/api/eventos/${eventId}/inscritos`);
     if (!list || list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" class="empty-state">No hay estudiantes inscritos aun.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" class="empty-state">Sin inscritos.</td></tr>`;
       return;
     }
 
     tbody.innerHTML = list.map(i => {
       const isVolunteer = i.tipo_participacion === 'voluntario_activo';
       const roleBadge = isVolunteer
-        ? '<span class="badge badge-volunteer">Participante Activo</span>'
+        ? '<span class="badge badge-volunteer">Voluntario</span>'
         : '<span class="badge badge-category">Asistente</span>';
 
       const propuesta = isVolunteer && i.detalle_participacion
-        ? `<strong>Presenta:</strong> ${i.detalle_participacion}`
-        : '<em>(Publico general)</em>';
+        ? `${i.detalle_participacion}`
+        : '-';
 
       return `
         <tr>
@@ -431,13 +431,13 @@ async function viewEventInscriptions(eventId, titulo) {
       `;
     }).join('');
   } catch (err) {
-    showToast('Error al cargar inscritos', 'error');
+    showToast('No se pudieron cargar los inscritos', 'error');
   }
 }
 
 // Elimina un evento
 async function deleteEvent(id) {
-  if (!confirm(`Eliminar permanentemente el evento #${id}?`)) return;
+  if (!confirm(`¿Eliminar el evento?`)) return;
   try {
     const res = await API.delete(`/api/eventos/${id}`);
     showToast(res.mensaje, 'info');
@@ -475,7 +475,7 @@ function renderCatalogList(containerId, items, tipo) {
   const c = document.getElementById(containerId);
   if (!c) return;
   if (items.length === 0) {
-    c.innerHTML = `<li class="catalog-list-item" style="color: var(--text-muted);">Sin elementos.</li>`;
+    c.innerHTML = `<li class="catalog-list-item" style="color: var(--text-muted);">Vacío.</li>`;
     return;
   }
   let funcionEliminar = '';
@@ -492,13 +492,13 @@ function renderCatalogList(containerId, items, tipo) {
 }
 
 function populateSelects() {
-  document.getElementById('event-cat').innerHTML = '<option value="">Selecciona categoria...</option>' +
+  document.getElementById('event-cat').innerHTML = '<option value="">Selecciona una categoría</option>' +
     cachedCats.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
 
-  document.getElementById('event-loc').innerHTML = '<option value="">Selecciona zona escolar...</option>' +
+  document.getElementById('event-loc').innerHTML = '<option value="">Selecciona un lugar</option>' +
     cachedLocs.map(l => `<option value="${l.id}">${l.nombre}</option>`).join('');
 
-  document.getElementById('event-org').innerHTML = '<option value="">Selecciona organizador...</option>' +
+  document.getElementById('event-org').innerHTML = '<option value="">Selecciona un organizador</option>' +
     cachedOrgs.map(o => `<option value="${o.id}">${o.nombre}</option>`).join('');
 }
 
@@ -509,7 +509,7 @@ function setupCatalogForms() {
     try {
       await API.post('/api/categorias', { nombre: input.value.trim() });
       input.value = '';
-      showToast('Categoria creada', 'success');
+      showToast('Categoría creada', 'success');
       await loadCatalogs();
     } catch (err) { showToast(err.message, 'error'); }
   });
@@ -520,7 +520,7 @@ function setupCatalogForms() {
     try {
       await API.post('/api/ubicaciones', { nombre: input.value.trim() });
       input.value = '';
-      showToast('Zona / Ubicacion creada', 'success');
+      showToast('Lugar creado', 'success');
       await loadCatalogs();
     } catch (err) { showToast(err.message, 'error'); }
   });
@@ -538,7 +538,7 @@ function setupCatalogForms() {
 }
 
 async function deleteCategory(id) {
-  if (!confirm('Eliminar esta categoria?')) return;
+  if (!confirm('¿Eliminar la categoría?')) return;
   try {
     await API.delete(`/api/categorias/${id}`);
     await loadCatalogs();
@@ -546,7 +546,7 @@ async function deleteCategory(id) {
 }
 
 async function deleteLocation(id) {
-  if (!confirm('Eliminar esta ubicacion?')) return;
+  if (!confirm('¿Eliminar el lugar?')) return;
   try {
     await API.delete(`/api/ubicaciones/${id}`);
     await loadCatalogs();
@@ -554,7 +554,7 @@ async function deleteLocation(id) {
 }
 
 async function deleteOrganizer(id) {
-  if (!confirm('Eliminar este organizador?')) return;
+  if (!confirm('¿Eliminar el organizador?')) return;
   try {
     await API.delete(`/api/organizadores/${id}`);
     await loadCatalogs();
@@ -592,7 +592,7 @@ async function loadUsers() {
       `;
     }).join('');
   } catch (err) {
-    showToast('Error al cargar usuarios', 'error');
+    showToast('No se pudieron cargar los usuarios', 'error');
   }
 }
 
@@ -606,7 +606,7 @@ async function changeRole(id, newRole) {
 }
 
 async function deleteUser(id) {
-  if (!confirm('Eliminar este usuario del sistema?')) return;
+  if (!confirm('¿Eliminar el usuario?')) return;
   try {
     const res = await API.delete(`/api/usuarios/${id}`);
     showToast(res.mensaje, 'info');
@@ -632,7 +632,7 @@ async function loadProblems() {
       `;
     }
     if (problems.length === 0) {
-      container.innerHTML = `<div class="empty-state">No hay inconvenientes reportados. Todo marcha bien!</div>`;
+      container.innerHTML = `<div class="empty-state">No hay reportes.</div>`;
       return;
     }
 
@@ -652,24 +652,24 @@ async function loadProblems() {
           </div>
           <p class="report-desc">${p.descripcion}</p>
           <div class="report-meta" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <span>Reportado por: <strong>${p.autor_nombre}</strong> (${p.autor_email}) - ${p.fecha}</span>
+            <span><strong>${p.autor_nombre}</strong> · ${p.fecha}</span>
             <div style="display: flex; gap: 6px;">
-              ${p.estado !== 'resuelto' ? `<button onclick="updateProblemStatus(${p.id}, 'resuelto')" class="btn btn-primary btn-sm">Marcar Resuelto</button>` : ''}
-              ${p.estado === 'pendiente' ? `<button onclick="updateProblemStatus(${p.id}, 'en revision')" class="btn btn-outline btn-sm">Poner en Revision</button>` : ''}
+              ${p.estado !== 'resuelto' ? `<button onclick="updateProblemStatus(${p.id}, 'resuelto')" class="btn btn-primary btn-sm">Marcar resuelto</button>` : ''}
+              ${p.estado === 'pendiente' ? `<button onclick="updateProblemStatus(${p.id}, 'en revision')" class="btn btn-outline btn-sm">Poner en revisión</button>` : ''}
             </div>
           </div>
         </div>
       `;
     }).join('');
   } catch (err) {
-    showToast('Error al cargar reportes de problemas', 'error');
+    showToast('No se pudieron cargar los reportes', 'error');
   }
 }
 
 async function updateProblemStatus(id, estado) {
   try {
     await API.put(`/api/reportes/${id}/estado`, { estado });
-    showToast(`Inconveniente marcado como '${estado}'`, 'success');
+    showToast(`Reporte: ${estado}`, 'success');
     await loadProblems();
     await loadStats();
   } catch (err) {
@@ -685,7 +685,7 @@ async function loadSurveys() {
   try {
     // Si hay eventos, mostramos botones para ver encuestas
     if (cachedEvents.length === 0) {
-      container.innerHTML = `<div class="empty-state">No hay eventos para encuestas.</div>`;
+      container.innerHTML = `<div class="empty-state">No hay eventos.</div>`;
       return;
     }
 
@@ -695,9 +695,9 @@ async function loadSurveys() {
           <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; justify-content: space-between; align-items: center;">
             <div>
               <strong>${e.titulo}</strong>
-              <div style="font-size: 0.8rem; color: var(--text-muted);">Fecha: ${e.fecha} | Zona: ${e.ubicacion_nombre || 'N/A'}</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">${e.fecha} · ${e.ubicacion_nombre || '-'}</div>
             </div>
-            <button onclick="checkEventSurvey(${e.id}, '${e.titulo.replace(/'/g, "\\'")}')" class="btn btn-outline btn-sm">Consultar Encuesta</button>
+            <button onclick="checkEventSurvey(${e.id}, '${e.titulo.replace(/'/g, "\\'")}')" class="btn btn-outline btn-sm">Ver encuesta</button>
           </div>
         `).join('')}
       </div>
@@ -737,7 +737,7 @@ function initSurveyPresets() {
 
 function openCreateSurveyModal() {
   const select = document.getElementById('survey-event-id');
-  select.innerHTML = '<option value="">Selecciona el evento...</option>' +
+  select.innerHTML = '<option value="">Selecciona un evento</option>' +
     cachedEvents.map(e => `<option value="${e.id}">${e.titulo} (${e.fecha})</option>`).join('');
   openModal('survey-form-modal');
 }
@@ -753,7 +753,7 @@ function setupSurveyForm() {
     const pregunta_1 = document.getElementById('survey-q1').value.trim();
     const opciones_1 = document.getElementById('survey-opt1').value.trim();
     if (opciones_1.split(',').filter(o => o.trim()).length < 2) {
-      showToast('La pregunta 1 necesita al menos dos opciones de seleccion', 'error');
+      showToast('La pregunta 1 necesita al menos dos opciones', 'error');
       return;
     }
     const pregunta_2 = document.getElementById('survey-q2').value.trim();
@@ -784,7 +784,7 @@ async function checkEventSurvey(eventoId, eventoTitulo) {
   try {
     const data = await API.get(`/api/encuestas/evento/${eventoId}`);
     if (!data.tiene_encuesta) {
-      if (confirm(`El evento '${eventoTitulo}' no tiene una encuesta activa todavia. ¿Deseas crear una ahora?`)) {
+      if (confirm(`Este evento no tiene encuesta. ¿Crear una?`)) {
         openCreateSurveyModal();
         document.getElementById('survey-event-id').value = eventoId;
       }
@@ -792,32 +792,32 @@ async function checkEventSurvey(eventoId, eventoTitulo) {
     }
     // Traemos los resultados
     const res = await API.get(`/api/encuestas/${data.id}/resultados`);
-    document.getElementById('survey-results-title').textContent = `Resultados: ${res.encuesta.titulo}`;
+    document.getElementById('survey-results-title').textContent = `${res.encuesta.titulo}`;
 
     const body = document.getElementById('survey-results-body');
     const openAnswersHtml = res.respuestas && res.respuestas.length > 0
       ? res.respuestas.map(r => `
           <div class="survey-result-item">
             <div><strong>${r.autor_nombre}</strong>:</div>
-            <div>- Respuesta cerrada 1: <span class="badge badge-category">${r.respuesta_1}</span></div>
-            ${r.respuesta_2 ? `<div>- Respuesta cerrada 2: <span class="badge badge-category">${r.respuesta_2}</span></div>` : ''}
-            <div style="margin-top: 4px; font-style: italic; color: #1e3a8a;">"${r.respuesta_abierta || 'Sin comentarios'}"</div>
+            <div>1: <span class="badge badge-category">${r.respuesta_1}</span></div>
+            ${r.respuesta_2 ? `<div>2: <span class="badge badge-category">${r.respuesta_2}</span></div>` : ''}
+            <div style="margin-top: 4px; font-style: italic; color: #1e3a8a;">"${r.respuesta_abierta || 'Sin comentario'}"</div>
           </div>
         `).join('')
-      : '<p style="color: var(--text-muted); font-size: 0.85rem;">Aun ningun estudiante ha respondido esta encuesta.</p>';
+      : '<p style="color: var(--text-muted); font-size: 0.85rem;">Sin respuestas.</p>';
 
     body.innerHTML = `
       <div style="margin-bottom: 12px;">
-        <h4 style="margin-bottom: 4px;">Total de estudiantes que respondieron: <strong>${res.total_respuestas}</strong></h4>
-        <p style="font-size: 0.84rem; color: var(--text-muted);">Pregunta principal: ${res.encuesta.pregunta_1}</p>
+        <h4 style="margin-bottom: 4px;">Respuestas: <strong>${res.total_respuestas}</strong></h4>
+        <p style="font-size: 0.84rem; color: var(--text-muted);">${res.encuesta.pregunta_1}</p>
       </div>
-      <h5 style="margin-bottom: 8px;">Respuestas y opiniones libres recibidas:</h5>
+      <h5 style="margin-bottom: 8px;">Opiniones</h5>
       <div style="max-height: 280px; overflow-y: auto;">${openAnswersHtml}</div>
     `;
 
     openModal('survey-results-modal');
   } catch (err) {
-    showToast('Error al consultar encuesta', 'error');
+    showToast('No se pudo cargar la encuesta', 'error');
   }
 }
 
@@ -829,7 +829,7 @@ async function loadSuggestions() {
   try {
     const sugs = await API.get('/api/sugerencias');
     if (sugs.length === 0) {
-      container.innerHTML = `<div class="empty-state">No hay sugerencias en el buzon.</div>`;
+      container.innerHTML = `<div class="empty-state">No hay sugerencias.</div>`;
       return;
     }
 
@@ -840,18 +840,18 @@ async function loadSuggestions() {
           <span class="suggestion-date">(${s.autor_email}) - ${s.fecha}</span>
           <p class="suggestion-text">${s.texto}</p>
         </div>
-        <button onclick="deleteSuggestion(${s.id})" class="btn btn-outline btn-sm">Marcar Revisada</button>
+        <button onclick="deleteSuggestion(${s.id})" class="btn btn-outline btn-sm">Marcar revisada</button>
       </div>
     `).join('');
   } catch (err) {
-    showToast('Error al cargar sugerencias', 'error');
+    showToast('No se pudieron cargar las sugerencias', 'error');
   }
 }
 
 async function deleteSuggestion(id) {
   try {
     await API.delete(`/api/sugerencias/${id}`);
-    showToast('Sugerencia archivada', 'info');
+    showToast('Sugerencia revisada', 'info');
     await loadSuggestions();
     await loadStats();
   } catch (err) { showToast(err.message, 'error'); }

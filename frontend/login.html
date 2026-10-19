@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Iniciar Sesión | IDETHeventos</title>
+  <title>Iniciar sesión | IDETHeventos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -27,31 +27,28 @@
     <div class="auth-card">
       <div class="auth-card-header">
         <img src="/static/img/logoColegio.jpeg" alt="Logo Colegio" class="auth-logo">
-        <h1 class="auth-title">Iniciar Sesión</h1>
-        <p class="auth-subtitle">Ingresa con tu correo y contraseña</p>
+        <h1 class="auth-title">Iniciar sesión</h1>
       </div>
 
       <form id="login-form">
         <div class="form-group">
-          <label class="form-label" for="login-email">Correo Electronico</label>
+          <label class="form-label" for="login-email">Correo</label>
           <input type="email" id="login-email" class="form-control" placeholder="ejemplo@ideth.edu" required>
-          <p class="form-hint">Prueba: admin@ideth.edu o estudiante@ideth.edu</p>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="login-password">Contraseña</label>
-          <input type="password" id="login-password" class="form-control" placeholder="Tu contraseña" required>
-          <p class="form-hint">Prueba: admin123 o estudiante123</p>
+          <input type="password" id="login-password" class="form-control" placeholder="Contraseña" required>
         </div>
 
         <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-login-submit">
-          Ingresar al Portal
+          Ingresar
         </button>
       </form>
 
       <div class="auth-footer">
-        <p>No tienes cuenta? <a href="/register">Registrate aqui</a></p>
-        <a href="/" class="auth-back">Volver al inicio</a>
+        <p>¿No tienes cuenta? <a href="/register">Regístrate</a></p>
+        <a href="/" class="auth-back">Inicio</a>
       </div>
     </div>
   </main>
@@ -93,7 +90,7 @@
         } catch (err) {
           showToast(err.message, 'error');
           btn.disabled = false;
-          btn.textContent = 'Ingresar al Portal';
+          btn.textContent = 'Ingresar';
         }
       });
     });
