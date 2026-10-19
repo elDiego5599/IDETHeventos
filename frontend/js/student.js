@@ -85,7 +85,7 @@ async function loadEvents() {
     allEvents = events;
     applyStudentFilters();
   } catch (err) {
-    showToast('Error al cargar eventos escolares', 'error');
+    showToast('No se pudieron cargar los eventos', 'error');
   }
 }
 
@@ -200,7 +200,7 @@ async function loadMyInscriptions() {
             </button>
             <button onclick="cancelEnrollment(${e.id})" class="btn btn-danger btn-sm">Cancelar</button>
             <button onclick="openStudentModal(${e.id})" class="btn btn-outline btn-sm">
-              ${e.es_pasado || e.estado === 'pasado' ? 'Ver / Calificar' : 'Ver Detalle'}
+              ${e.es_pasado || e.estado === 'pasado' ? 'Calificar' : 'Ver detalle'}
             </button>
           </div>
         </div>
@@ -217,14 +217,14 @@ function renderStudentEvents(events) {
   if (!container) return;
 
   if (events.length === 0) {
-    container.innerHTML = `<div class="empty-state">No se encontraron eventos disponibles con este filtro.</div>`;
+    container.innerHTML = `<div class="empty-state">No hay eventos.</div>`;
     return;
   }
 
   container.innerHTML = events.map(e => {
-    let statusBadge = '<span class="badge badge-upcoming">Proximo</span>';
+    let statusBadge = '<span class="badge badge-upcoming">Próximo</span>';
     if (e.estado === 'activo') {
-      statusBadge = '<span class="badge badge-active">En Vivo / Hoy</span>';
+      statusBadge = '<span class="badge badge-active">Hoy</span>';
     } else if (e.es_pasado || e.estado === 'pasado') {
       statusBadge = '<span class="badge badge-past">Finalizado</span>';
     }
@@ -235,7 +235,7 @@ function renderStudentEvents(events) {
 
     const isUpcoming = e.estado === 'proximo' && !e.es_pasado;
     const volunteerBadge = e.permite_voluntarios && isUpcoming
-      ? '<span class="badge badge-volunteer">Acepta Voluntarios</span>'
+      ? '<span class="badge badge-volunteer">Voluntarios</span>'
       : '';
 
     const photoUrl = getEventThumbnail(e.imagen_url);
@@ -267,7 +267,7 @@ function renderStudentEvents(events) {
           </div>
           <div class="event-card-extra">
             ${mottoHtml}
-            <p class="event-card-desc">${e.descripcion || 'Actividad deportiva escolar.'}</p>
+            <p class="event-card-desc">${e.descripcion || ''}</p>
             <div class="event-card-place"><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Cancha Principal'}</div>
           </div>
           <button type="button" class="event-toggle" aria-expanded="false" onclick="toggleEventCard(this)">Ver más información</button>
@@ -277,7 +277,7 @@ function renderStudentEvents(events) {
             ${e.total_inscritos || 0} inscritos
           </span>
           <button onclick="openStudentModal(${e.id})" class="btn ${e.esta_inscrito ? 'btn-secondary' : 'btn-primary'} btn-sm">
-            ${e.es_pasado || e.estado === 'pasado' ? 'Ver / Calificar' : e.estado === 'activo' ? 'Ver Detalle' : e.esta_inscrito ? 'Ver Detalle' : 'Ver e Inscribirme'}
+            ${e.es_pasado || e.estado === 'pasado' ? 'Calificar' : e.estado === 'activo' ? 'Ver detalle' : e.esta_inscrito ? 'Ver detalle' : 'Inscribirme'}
           </button>
         </div>
       </div>
@@ -293,7 +293,7 @@ async function openStudentModal(id) {
 
     setStudentText('modal-title', e.titulo);
     setStudentText('modal-cat', e.categoria_nombre || 'General');
-    setStudentText('modal-desc', e.descripcion || 'Sin descripcion.');
+    setStudentText('modal-desc', e.descripcion || 'Sin descripción');
     setStudentText('modal-date', e.fecha);
     setStudentText('modal-loc', e.ubicacion_nombre || 'Por confirmar');
     setStudentText('modal-org', e.organizador_nombre || 'Colegio IDETH');
@@ -337,13 +337,13 @@ async function openStudentModal(id) {
     const statusEl = document.getElementById('modal-status');
     if (e.estado === 'activo') {
       statusEl.className = 'badge badge-active';
-      statusEl.textContent = 'En Vivo / Hoy';
+      statusEl.textContent = 'Hoy';
     } else if (e.es_pasado || e.estado === 'pasado') {
       statusEl.className = 'badge badge-past';
       statusEl.textContent = 'Finalizado';
     } else {
       statusEl.className = 'badge badge-upcoming';
-      statusEl.textContent = 'Proximo';
+      statusEl.textContent = 'Próximo';
     }
 
     renderEnrollmentAction(e);
@@ -357,7 +357,7 @@ async function openStudentModal(id) {
       ratingBox.style.display = 'block';
       commentFormBox.style.display = 'block';
       updateStarUI(e.mi_calificacion || 0);
-      ratingHint.textContent = 'Haz clic en una estrella para calificar (1 a 5):';
+      ratingHint.textContent = 'Elige de 1 a 5 estrellas';
     } else {
       ratingBox.style.display = 'none';
       commentFormBox.style.display = 'none';
@@ -370,7 +370,7 @@ async function openStudentModal(id) {
 
     openModal('student-event-modal');
   } catch (err) {
-    showToast(err.message || 'Error al cargar evento', 'error');
+    showToast(err.message || 'No se pudo cargar el evento', 'error');
   }
 }
 
@@ -385,7 +385,7 @@ function renderEnrollmentAction(e) {
   if (isPast) {
     container.innerHTML = `
       <div class="event-action-notice">
-        Este evento ya finalizo. Puedes calificarlo y compartir tu experiencia.
+        Evento finalizado. Puedes calificarlo.
       </div>
     `;
     return;
@@ -394,7 +394,7 @@ function renderEnrollmentAction(e) {
   if (isActive) {
     container.innerHTML = `
       <div class="event-action-notice">
-        Este evento ya comenzo. La inscripcion ya no esta disponible.
+        Inscripciones cerradas.
       </div>
     `;
     return;
@@ -403,16 +403,16 @@ function renderEnrollmentAction(e) {
   if (e.esta_inscrito) {
     const isVolunteer = e.mi_tipo_participacion === 'voluntario_activo';
     const detailText = isVolunteer && e.mi_detalle_participacion
-      ? `<div style="margin-top: 4px; font-size: 0.82rem; color: #6b21a8;">Participas con: <strong>${e.mi_detalle_participacion}</strong></div>`
+      ? `<div style="margin-top: 4px; font-size: 0.82rem; color: #6b21a8;">Presentas: <strong>${e.mi_detalle_participacion}</strong></div>`
       : '';
 
     container.innerHTML = `
       <div class="modal-enroll-status">
         <div>
-          <span>Estas inscrito ${isVolunteer ? 'como Participante Activo / Voluntario' : 'como Asistente'}.</span>
+          <span>Inscrito como ${isVolunteer ? 'voluntario' : 'asistente'}</span>
           ${detailText}
         </div>
-        <button onclick="cancelEnrollment(${e.id})" class="btn btn-danger btn-sm">Cancelar Inscripcion</button>
+        <button onclick="cancelEnrollment(${e.id})" class="btn btn-danger btn-sm">Cancelar inscripción</button>
       </div>
     `;
   } else {
@@ -421,33 +421,30 @@ function renderEnrollmentAction(e) {
       container.innerHTML = `
         <div class="volunteer-box">
           <div style="font-size: 0.88rem; font-weight: 700; margin-bottom: 6px; color: #4338ca;">
-            Este evento escolar acepta participacion de estudiantes!
-          </div>
-          <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 10px;">
-            Elige como te gustaria participar:
+            Cómo quieres participar
           </div>
           <div class="volunteer-option-group">
             <label class="radio-label">
               <input type="radio" name="participation_type" value="asistente" checked onchange="toggleVolunteerInput(false)">
-              Asistir como publico / espectador
+              Asistente
             </label>
             <label class="radio-label">
               <input type="radio" name="participation_type" value="voluntario_activo" onchange="toggleVolunteerInput(true)">
-              Participar activamente (declamar poema, leer cuento, arbitrar, staff)
+              Voluntario
             </label>
           </div>
           <div id="volunteer-detail-group" style="display: none; margin-top: 10px;">
             <label class="form-label" style="font-size: 0.82rem;" for="volunteer-detail-input">
-              ¿Que vas a presentar o en que vas a participar?
+              ¿Qué vas a hacer?
             </label>
-            <input type="text" id="volunteer-detail-input" class="form-control" placeholder="Ej: Declamar poema 'A Margarita Debayle' / Cuento propio / Arbitro de linea">
+            <input type="text" id="volunteer-detail-input" class="form-control" placeholder="Ej: declamar un poema">
           </div>
         </div>
-        <button onclick="enrollInEvent(${e.id}, true)" class="btn btn-primary btn-block">Confirmar mi Inscripcion</button>
+        <button onclick="enrollInEvent(${e.id}, true)" class="btn btn-primary btn-block">Inscribirme</button>
       `;
     } else {
       container.innerHTML = `
-        <button onclick="enrollInEvent(${e.id}, false)" class="btn btn-primary btn-block">Inscribirme a este Evento</button>
+        <button onclick="enrollInEvent(${e.id}, false)" class="btn btn-primary btn-block">Inscribirme</button>
       `;
     }
   }
@@ -469,7 +466,7 @@ async function enrollInEvent(id, hasCondition) {
       tipo_participacion = 'voluntario_activo';
       detalle_participacion = (document.getElementById('volunteer-detail-input')?.value || '').trim();
       if (!detalle_participacion) {
-        showToast('Por favor escribe que poema, cuento o actividad vas a presentar', 'error');
+        showToast('Escribe qué vas a hacer', 'error');
         return;
       }
     }
@@ -612,7 +609,7 @@ async function loadEventSurvey(eventoId) {
     }
 
     // Pregunta abierta
-    setStudentText('survey-qopen-label', data.pregunta_abierta || 'Tu opinion libre:');
+    setStudentText('survey-qopen-label', data.pregunta_abierta || 'Tu opinión');
     document.getElementById('survey-open-text').value = '';
   } catch (err) {
     console.error(err);
