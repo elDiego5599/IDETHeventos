@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/styles.css?v=7">
-  <link rel="stylesheet" href="/static/css/dashboard.css?v=4">
+  <link rel="stylesheet" href="/static/css/styles.css?v=8">
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=5">
 </head>
 <body>
 
@@ -38,17 +38,17 @@
   </div>
 
   <main class="container page-bottom">
-    <div class="tabs-nav">
-      <button class="tab-btn active" data-tab="tab-cronograma">Eventos</button>
-      <button class="tab-btn" data-tab="tab-mis-eventos">
+    <div class="tabs-nav" role="tablist">
+      <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-cronograma" data-tab="tab-cronograma">Eventos</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-mis-eventos" data-tab="tab-mis-eventos">
         Inscripciones <span class="tab-badge" id="badge-my-count">0</span>
       </button>
-      <button class="tab-btn" data-tab="tab-reportar-problema">Reportar problema</button>
-      <button class="tab-btn" data-tab="tab-sugerencias">Sugerencias</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-reportar-problema" data-tab="tab-reportar-problema">Reportar problema</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-sugerencias" data-tab="tab-sugerencias">Sugerencias</button>
     </div>
 
     <!-- Pestaña 1: Cronograma -->
-    <div class="tab-content active" id="tab-cronograma">
+    <div class="tab-content active" id="tab-cronograma" role="tabpanel">
       <div class="search-bar-wrap">
         <input type="text" id="student-search-input" class="search-input" placeholder="Buscar eventos">
       </div>
@@ -73,14 +73,14 @@
     </div>
 
     <!-- Pestaña 2: Mis Inscripciones -->
-    <div class="tab-content" id="tab-mis-eventos">
+    <div class="tab-content" id="tab-mis-eventos" role="tabpanel">
       <div class="events-grid" id="my-events-grid">
         <!-- Renderizado por student.js -->
       </div>
     </div>
 
     <!-- Pestaña 3: Reportar Problema o Inconveniente -->
-    <div class="tab-content" id="tab-reportar-problema">
+    <div class="tab-content" id="tab-reportar-problema" role="tabpanel">
       <div class="suggestion-card" style="max-width: 650px;">
         <h2 class="suggestion-card-title">Reportar un problema</h2>
         <form id="form-report-problem">
@@ -111,7 +111,7 @@
     </div>
 
     <!-- Pestaña 4: Buzón de Sugerencias -->
-    <div class="tab-content" id="tab-sugerencias">
+    <div class="tab-content" id="tab-sugerencias" role="tabpanel">
       <div class="suggestion-card">
         <h2 class="suggestion-card-title">Sugerencias</h2>
         <form id="form-suggestion">
@@ -244,11 +244,11 @@
 
   <footer class="footer">
     <div class="container">
-      <p>Portal de Eventos IDETH - Colegio IDETH</p>
+      <p>Portal de Eventos IDETH</p>
     </div>
   </footer>
 
-  <script src="/static/js/utils.js?v=4"></script>
-  <script src="/static/js/student.js?v=4"></script>
+  <script src="/static/js/utils.js?v=5"></script>
+  <script src="/static/js/student.js?v=5"></script>
 </body>
 </html>

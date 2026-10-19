@@ -41,14 +41,7 @@ function setupTabs() {
   const panes = document.querySelectorAll('.tab-content');
 
   btns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      btns.forEach(b => b.classList.remove('active'));
-      panes.forEach(p => p.classList.remove('active'));
-
-      btn.classList.add('active');
-      const target = document.getElementById(btn.dataset.tab);
-      if (target) target.classList.add('active');
-    });
+    btn.addEventListener('click', () => setActiveTab(btns, panes, btn));
   });
 }
 
@@ -134,7 +127,7 @@ function populateReportEventSelect() {
   const select = document.getElementById('report-event-id');
   if (!select) return;
   select.innerHTML = '<option value="">Problema general del colegio o selecciona evento...</option>' +
-    allEvents.map(e => `<option value="${e.id}">${e.titulo} (${e.fecha})</option>`).join('');
+    allEvents.map(e => `<option value="${e.id}">${e.titulo} (${formatDate(e.fecha)})</option>`).join('');
 }
 
 // Trae los eventos donde el estudiante esta inscrito
@@ -189,9 +182,9 @@ async function loadMyInscriptions() {
             <h3 class="event-card-title">${e.titulo}</h3>
             ${detalleTexto}
             <div class="event-meta">
-              <div><strong>Fecha:</strong> ${e.fecha}</div>
+              <div><strong>Fecha:</strong> ${formatDate(e.fecha)}</div>
               <div><strong>Zona / Lugar:</strong> ${e.ubicacion_nombre || 'Por confirmar'}</div>
-              <div><strong>Inscrito el:</strong> ${e.fecha_registro}</div>
+              <div><strong>Inscrito el:</strong> ${formatDate(e.fecha_registro)}</div>
             </div>
           </div>
           <div class="event-card-footer" style="flex-wrap: wrap; gap: 6px;">
@@ -243,10 +236,10 @@ function renderStudentEvents(events) {
       ? `<div class="event-card-img-wrap">
            <img src="${photoUrl}" alt="${e.titulo}" class="event-card-img" onerror="this.src='/static/img/cancha_futbol_ideth.jpeg'">
          </div>`
-      : '';
+      : eventBannerHtml(e.categoria_nombre);
 
     const mottoHtml = e.frase_motivacional
-      ? `<div style="font-style: italic; color: #b45309; font-size: 0.84rem; margin-bottom: 8px;">"${e.frase_motivacional}"</div>`
+      ? `<div style="font-style: italic; color: #92400e; font-size: 0.84rem; margin-bottom: 8px;">“${cleanQuote(e.frase_motivacional)}”</div>`
       : '';
 
     return `
@@ -263,7 +256,7 @@ function renderStudentEvents(events) {
         <div class="event-card-body">
           <h3 class="event-card-title">${e.titulo}</h3>
           <div class="event-meta">
-            <div><strong>Fecha:</strong> ${e.fecha}</div>
+            <div><strong>Fecha:</strong> ${formatDate(e.fecha)}</div>
           </div>
           <div class="event-card-extra">
             ${mottoHtml}
@@ -274,9 +267,9 @@ function renderStudentEvents(events) {
         </div>
         <div class="event-card-footer">
           <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">
-            ${e.total_inscritos || 0} inscritos
+            ${e.total_inscritos ? `${e.total_inscritos} inscritos` : ''}
           </span>
-          <button onclick="openStudentModal(${e.id})" class="btn ${e.esta_inscrito ? 'btn-secondary' : 'btn-primary'} btn-sm">
+          <button onclick="openStudentModal(${e.id})" class="btn ${!e.esta_inscrito && e.estado === 'proximo' && !e.es_pasado ? 'btn-primary' : 'btn-outline'} btn-sm">
             ${e.es_pasado || e.estado === 'pasado' ? 'Calificar' : e.estado === 'activo' ? 'Ver detalle' : e.esta_inscrito ? 'Ver detalle' : 'Inscribirme'}
           </button>
         </div>
@@ -294,7 +287,7 @@ async function openStudentModal(id) {
     setStudentText('modal-title', e.titulo);
     setStudentText('modal-cat', e.categoria_nombre || 'General');
     setStudentText('modal-desc', e.descripcion || 'Sin descripción');
-    setStudentText('modal-date', e.fecha);
+    setStudentText('modal-date', formatDate(e.fecha));
     setStudentText('modal-loc', e.ubicacion_nombre || 'Por confirmar');
     setStudentText('modal-org', e.organizador_nombre || 'Colegio IDETH');
     setStudentText('modal-enrolled-count', e.total_inscritos || 0);
@@ -314,7 +307,7 @@ async function openStudentModal(id) {
     // Frase motivacional
     const mottoBox = document.getElementById('modal-motto-box');
     if (e.frase_motivacional) {
-      setStudentText('modal-motto', `"${e.frase_motivacional}"`);
+      setStudentText('modal-motto', `“${cleanQuote(e.frase_motivacional)}”`);
       mottoBox.style.display = 'block';
     } else {
       mottoBox.style.display = 'none';
@@ -487,7 +480,7 @@ async function enrollInEvent(id, hasCondition) {
 
 // Cancela la inscripcion
 async function cancelEnrollment(id) {
-  if (!confirm('Deseas cancelar tu inscripcion a este evento escolar?')) return;
+  if (!(await confirmDialog('¿Cancelar tu inscripción?', 'Cancelar inscripción'))) return;
   try {
     const res = await API.delete(`/api/inscripciones/${id}`);
     showToast(res.mensaje, 'info');
@@ -532,7 +525,7 @@ function openSchoolPass(eventId) {
         </div>
         <div>
           <div class="pass-field-label">Fecha del Evento:</div>
-          <div class="pass-field-val">${item.fecha}</div>
+          <div class="pass-field-val">${formatDate(item.fecha)}</div>
         </div>
         <div>
           <div class="pass-field-label">Zona / Lugar:</div>
@@ -710,7 +703,7 @@ function renderComments(comments) {
     <div class="comment-item">
       <div class="comment-header">
         <span class="comment-author">${c.autor_nombre}</span>
-        <span class="comment-date">${c.fecha}</span>
+        <span class="comment-date">${formatDate(c.fecha)}</span>
       </div>
       <p class="comment-text">${c.texto}</p>
     </div>

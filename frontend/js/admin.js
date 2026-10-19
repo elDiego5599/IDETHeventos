@@ -6,7 +6,6 @@ let cachedEvents = [];
 let editingEventId = null;
 let adminEventsPage = 1;
 const ADMIN_EVENTS_PER_PAGE = 6;
-const CHART_COLORS = ['#275da8', '#e8795b', '#287a4b', '#7c5cbf', '#d99a1f', '#2a9aa0', '#bd443b', '#6b7a90'];
 
 const PHOTO_PRESETS = {
   futbol: 'img/cancha_futbol_ideth.jpeg',
@@ -80,14 +79,7 @@ function setupAdminTabs() {
   const panes = document.querySelectorAll('.admin-tab-pane');
 
   btns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      btns.forEach(b => b.classList.remove('active'));
-      panes.forEach(p => p.classList.remove('active'));
-
-      btn.classList.add('active');
-      const target = document.getElementById(btn.dataset.tab);
-      if (target) target.classList.add('active');
-    });
+    btn.addEventListener('click', () => setActiveTab(btns, panes, btn));
   });
 }
 
@@ -135,7 +127,7 @@ function renderAttentionPanel(stats) {
   const next = stats.proximo_evento;
   document.getElementById('attention-event-title').textContent = next ? next.titulo : 'Sin eventos próximos';
   document.getElementById('attention-event-sub').textContent = next
-    ? `${next.fecha} - ${next.total_inscritos} inscritos`
+    ? `${formatDate(next.fecha)}, ${next.total_inscritos} inscritos`
     : 'Crea un evento.';
 }
 
@@ -148,10 +140,10 @@ function renderCategoryChart(items) {
     return;
   }
   const max = Math.max(...items.map(i => i.total), 1);
-  box.innerHTML = items.map((item, idx) => `
+  box.innerHTML = items.map(item => `
     <div class="bar-row">
       <span class="bar-label" title="${escapeHtml(item.nombre)}">${escapeHtml(item.nombre)}</span>
-      <div class="bar-track"><div class="bar-fill" style="width: ${Math.max(item.total / max * 100, 4)}%; background: ${CHART_COLORS[idx % CHART_COLORS.length]};"></div></div>
+      <div class="bar-track"><div class="bar-fill" style="width: ${Math.max(item.total / max * 100, 4)}%; background: ${categoryColor(item.nombre)};"></div></div>
       <span class="bar-value">${item.total}</span>
     </div>
   `).join('');
@@ -246,26 +238,26 @@ async function loadEvents() {
 
       return `
         <tr>
-          <td><strong>#${e.id}</strong></td>
-          <td>${imgThumb}</td>
-          <td>
+          <td data-label="ID"><strong>#${e.id}</strong></td>
+          <td data-label="Portada">${imgThumb}</td>
+          <td data-label="Título">
             <strong>${e.titulo}</strong>
             ${e.estado === 'activo' ? '<span class="badge badge-active" style="margin-left: 4px;">Hoy</span>' : ''}
             ${e.es_pasado ? '<span class="badge badge-past" style="margin-left: 4px;">Finalizado</span>' : ''}
-            ${e.frase_motivacional ? `<br><small style="color: var(--text-muted); font-style: italic;">"${e.frase_motivacional}"</small>` : ''}
+            ${e.frase_motivacional ? `<br><small style="color: var(--text-muted); font-style: italic;">“${cleanQuote(e.frase_motivacional)}”</small>` : ''}
           </td>
-          <td>${e.fecha}</td>
-          <td><strong>${e.ubicacion_nombre || 'N/A'}</strong></td>
-          <td>${volunteerBadge}</td>
-          <td>
+          <td data-label="Fecha">${formatDate(e.fecha)}</td>
+          <td data-label="Lugar"><strong>${e.ubicacion_nombre || 'N/A'}</strong></td>
+          <td data-label="Voluntarios">${volunteerBadge}</td>
+          <td data-label="Inscritos">
             <button onclick="viewEventInscriptions(${e.id}, '${e.titulo.replace(/'/g, "\\'")}')" class="btn btn-outline btn-sm" title="Ver lista de inscritos">
               ${e.total_inscritos}
             </button>
           </td>
-          <td>
+          <td data-label="Acciones">
             <div class="table-actions">
-              <button onclick="openEditEvent(${e.id})" class="btn btn-outline btn-sm">Editar</button>
-              <button onclick="deleteEvent(${e.id})" class="btn btn-danger btn-sm">Eliminar</button>
+              <button onclick="openEditEvent(${e.id})" class="btn btn-primary btn-sm">Editar</button>
+              <button onclick="deleteEvent(${e.id})" class="btn btn-ghost-danger btn-sm">Eliminar</button>
             </div>
           </td>
         </tr>
@@ -437,7 +429,7 @@ async function viewEventInscriptions(eventId, titulo) {
 
 // Elimina un evento
 async function deleteEvent(id) {
-  if (!confirm(`¿Eliminar el evento?`)) return;
+  if (!(await confirmDialog('¿Eliminar el evento? Se borran sus inscripciones.', 'Eliminar'))) return;
   try {
     const res = await API.delete(`/api/eventos/${id}`);
     showToast(res.mensaje, 'info');
@@ -538,7 +530,7 @@ function setupCatalogForms() {
 }
 
 async function deleteCategory(id) {
-  if (!confirm('¿Eliminar la categoría?')) return;
+  if (!(await confirmDialog('¿Eliminar la categoría?', 'Eliminar'))) return;
   try {
     await API.delete(`/api/categorias/${id}`);
     await loadCatalogs();
@@ -546,7 +538,7 @@ async function deleteCategory(id) {
 }
 
 async function deleteLocation(id) {
-  if (!confirm('¿Eliminar el lugar?')) return;
+  if (!(await confirmDialog('¿Eliminar el lugar?', 'Eliminar'))) return;
   try {
     await API.delete(`/api/ubicaciones/${id}`);
     await loadCatalogs();
@@ -554,7 +546,7 @@ async function deleteLocation(id) {
 }
 
 async function deleteOrganizer(id) {
-  if (!confirm('¿Eliminar el organizador?')) return;
+  if (!(await confirmDialog('¿Eliminar el organizador?', 'Eliminar'))) return;
   try {
     await API.delete(`/api/organizadores/${id}`);
     await loadCatalogs();
@@ -575,19 +567,19 @@ async function loadUsers() {
       const roleBadge = u.rol === 'admin' ? '<span class="badge badge-past">Admin</span>' : '<span class="badge badge-upcoming">Estudiante</span>';
       const targetRole = u.rol === 'admin' ? 'estudiante' : 'admin';
 
-      const actions = isSelf ? '<em>(Tu cuenta)</em>' : `
+      const actions = isSelf ? '<em>Tu cuenta</em>' : `
         <div class="table-actions">
           <button onclick="changeRole(${u.id}, '${targetRole}')" class="btn btn-outline btn-sm">Hacer ${targetRole}</button>
-          <button onclick="deleteUser(${u.id})" class="btn btn-danger btn-sm">Eliminar</button>
+          <button onclick="deleteUser(${u.id})" class="btn btn-ghost-danger btn-sm">Eliminar</button>
         </div>
       `;
 
       return `
         <tr>
-          <td>${u.nombre}</td>
-          <td>${u.email}</td>
-          <td>${roleBadge}</td>
-          <td>${actions}</td>
+          <td data-label="Nombre">${u.nombre}</td>
+          <td data-label="Correo">${u.email}</td>
+          <td data-label="Rol">${roleBadge}</td>
+          <td data-label="Acciones">${actions}</td>
         </tr>
       `;
     }).join('');
@@ -606,7 +598,7 @@ async function changeRole(id, newRole) {
 }
 
 async function deleteUser(id) {
-  if (!confirm('¿Eliminar el usuario?')) return;
+  if (!(await confirmDialog('¿Eliminar el usuario? Se borran sus inscripciones.', 'Eliminar'))) return;
   try {
     const res = await API.delete(`/api/usuarios/${id}`);
     showToast(res.mensaje, 'info');
@@ -652,7 +644,7 @@ async function loadProblems() {
           </div>
           <p class="report-desc">${p.descripcion}</p>
           <div class="report-meta" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <span><strong>${p.autor_nombre}</strong> · ${p.fecha}</span>
+            <span><strong>${p.autor_nombre}</strong>, ${formatDate(p.fecha)}</span>
             <div style="display: flex; gap: 6px;">
               ${p.estado !== 'resuelto' ? `<button onclick="updateProblemStatus(${p.id}, 'resuelto')" class="btn btn-primary btn-sm">Marcar resuelto</button>` : ''}
               ${p.estado === 'pendiente' ? `<button onclick="updateProblemStatus(${p.id}, 'en revision')" class="btn btn-outline btn-sm">Poner en revisión</button>` : ''}
@@ -695,7 +687,7 @@ async function loadSurveys() {
           <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; justify-content: space-between; align-items: center;">
             <div>
               <strong>${e.titulo}</strong>
-              <div style="font-size: 0.8rem; color: var(--text-muted);">${e.fecha} · ${e.ubicacion_nombre || '-'}</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">${formatDate(e.fecha)}${e.ubicacion_nombre ? ', ' + e.ubicacion_nombre : ''}</div>
             </div>
             <button onclick="checkEventSurvey(${e.id}, '${e.titulo.replace(/'/g, "\\'")}')" class="btn btn-outline btn-sm">Ver encuesta</button>
           </div>
@@ -738,7 +730,7 @@ function initSurveyPresets() {
 function openCreateSurveyModal() {
   const select = document.getElementById('survey-event-id');
   select.innerHTML = '<option value="">Selecciona un evento</option>' +
-    cachedEvents.map(e => `<option value="${e.id}">${e.titulo} (${e.fecha})</option>`).join('');
+    cachedEvents.map(e => `<option value="${e.id}">${e.titulo} (${formatDate(e.fecha)})</option>`).join('');
   openModal('survey-form-modal');
 }
 
@@ -784,7 +776,7 @@ async function checkEventSurvey(eventoId, eventoTitulo) {
   try {
     const data = await API.get(`/api/encuestas/evento/${eventoId}`);
     if (!data.tiene_encuesta) {
-      if (confirm(`Este evento no tiene encuesta. ¿Crear una?`)) {
+      if (await confirmDialog('Este evento no tiene encuesta. ¿Crear una?', 'Crear')) {
         openCreateSurveyModal();
         document.getElementById('survey-event-id').value = eventoId;
       }
@@ -837,7 +829,7 @@ async function loadSuggestions() {
       <div class="suggestion-admin-card">
         <div>
           <span class="suggestion-author">${s.autor_nombre}</span>
-          <span class="suggestion-date">(${s.autor_email}) - ${s.fecha}</span>
+          <span class="suggestion-date">${s.autor_email}, ${formatDate(s.fecha)}</span>
           <p class="suggestion-text">${s.texto}</p>
         </div>
         <button onclick="deleteSuggestion(${s.id})" class="btn btn-outline btn-sm">Marcar revisada</button>

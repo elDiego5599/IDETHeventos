@@ -123,10 +123,80 @@ function updateNavbar() {
   }
 }
 
-// Formatea la fecha para mostrarla bonita (por ahora la deja igual)
+// Formatea "2026-02-12 09:50" como "12 feb 2026, 9:50 a. m."
+const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 function formatDate(str) {
   if (!str) return 'Por confirmar';
-  return str;
+  const m = String(str).match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/);
+  if (!m) return str;
+  const day = `${parseInt(m[3], 10)} ${MESES_CORTOS[parseInt(m[2], 10) - 1]} ${m[1]}`;
+  if (m[4] === undefined) return day;
+  const hour = parseInt(m[4], 10);
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${day}, ${hour12}:${m[5]} ${hour < 12 ? 'a. m.' : 'p. m.'}`;
+}
+
+// Un color fijo por categoria, para las tarjetas sin foto y los graficos
+const CATEGORY_COLORS = ['#275da8', '#d9663f', '#287a4b', '#6b4fb5', '#b7791f', '#1f8a91', '#bd443b', '#55657a'];
+function categoryColor(name) {
+  const text = String(name || 'General');
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+  return CATEGORY_COLORS[hash % CATEGORY_COLORS.length];
+}
+
+// Cuadro de color con el nombre de la categoria cuando el evento no tiene foto
+function eventBannerHtml(name) {
+  const label = name || 'General';
+  return `<div class="event-card-banner" style="--cat-color: ${categoryColor(label)};"><span>${label}</span></div>`;
+}
+
+// Quita las comillas que ya trae la frase, para no mostrarlas dobles
+function cleanQuote(text) {
+  return String(text || '').replace(/^[\s"“”«»]+|[\s"“”«»]+$/g, '');
+}
+
+// Ventana de confirmacion propia, devuelve true si la persona confirma
+function confirmDialog(message, confirmLabel = 'Confirmar') {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay active';
+    overlay.innerHTML = `
+      <div class="modal-container confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-dialog-text">
+        <div class="modal-body"><p id="confirm-dialog-text" class="confirm-dialog-text"></p></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" data-answer="no">Cancelar</button>
+          <button type="button" class="btn btn-danger btn-sm" data-answer="yes"></button>
+        </div>
+      </div>`;
+    overlay.querySelector('#confirm-dialog-text').textContent = message;
+    overlay.querySelector('[data-answer="yes"]').textContent = confirmLabel;
+    const finish = answer => {
+      document.removeEventListener('keydown', onKey);
+      overlay.remove();
+      resolve(answer);
+    };
+    const onKey = event => { if (event.key === 'Escape') finish(false); };
+    overlay.addEventListener('click', event => {
+      if (event.target === overlay) finish(false);
+      const answer = event.target.closest('[data-answer]')?.dataset.answer;
+      if (answer) finish(answer === 'yes');
+    });
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(overlay);
+    overlay.querySelector('[data-answer="no"]').focus();
+  });
+}
+
+// Marca la pestaña activa para lectores de pantalla
+function setActiveTab(btns, panes, activeBtn) {
+  btns.forEach(b => {
+    const active = b === activeBtn;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-selected', active ? 'true' : 'false');
+    b.tabIndex = active ? 0 : -1;
+  });
+  panes.forEach(p => p.classList.toggle('active', p.id === activeBtn.dataset.tab));
 }
 
 // Muestra u oculta la informacion extra de una tarjeta de evento

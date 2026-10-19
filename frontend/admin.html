@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/styles.css?v=7">
-  <link rel="stylesheet" href="/static/css/dashboard.css?v=4">
+  <link rel="stylesheet" href="/static/css/styles.css?v=8">
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=5">
 </head>
 <body>
 
@@ -117,19 +117,19 @@
     </div>
 
     <!-- Pestañas Admin -->
-    <div class="tabs-nav">
-      <button class="tab-btn active tab-admin-btn" data-tab="tab-admin-eventos">Eventos</button>
-      <button class="tab-btn tab-admin-btn" data-tab="tab-admin-catalogos">Catálogos</button>
-      <button class="tab-btn tab-admin-btn" data-tab="tab-admin-usuarios">Usuarios</button>
-      <button class="tab-btn tab-admin-btn" data-tab="tab-admin-problemas">Reportes</button>
-      <button class="tab-btn tab-admin-btn" data-tab="tab-admin-encuestas">Encuestas</button>
-      <button class="tab-btn tab-admin-btn" data-tab="tab-admin-sugerencias">Sugerencias</button>
+    <div class="tabs-nav" role="tablist">
+      <button class="tab-btn active tab-admin-btn" role="tab" aria-selected="true" aria-controls="tab-admin-eventos" data-tab="tab-admin-eventos">Eventos</button>
+      <button class="tab-btn tab-admin-btn" role="tab" aria-selected="false" aria-controls="tab-admin-catalogos" data-tab="tab-admin-catalogos">Catálogos</button>
+      <button class="tab-btn tab-admin-btn" role="tab" aria-selected="false" aria-controls="tab-admin-usuarios" data-tab="tab-admin-usuarios">Usuarios</button>
+      <button class="tab-btn tab-admin-btn" role="tab" aria-selected="false" aria-controls="tab-admin-problemas" data-tab="tab-admin-problemas">Reportes</button>
+      <button class="tab-btn tab-admin-btn" role="tab" aria-selected="false" aria-controls="tab-admin-encuestas" data-tab="tab-admin-encuestas">Encuestas</button>
+      <button class="tab-btn tab-admin-btn" role="tab" aria-selected="false" aria-controls="tab-admin-sugerencias" data-tab="tab-admin-sugerencias">Sugerencias</button>
     </div>
 
     <!-- Pestaña Eventos -->
-    <div class="admin-tab-pane active" id="tab-admin-eventos">
+    <div class="admin-tab-pane active" id="tab-admin-eventos" role="tabpanel">
       <div class="table-responsive">
-        <table class="admin-table">
+        <table class="admin-table stack">
           <thead>
             <tr>
               <th>ID</th>
@@ -151,7 +151,7 @@
     </div>
 
     <!-- Pestaña Catálogos -->
-    <div class="admin-tab-pane" id="tab-admin-catalogos">
+    <div class="admin-tab-pane" id="tab-admin-catalogos" role="tabpanel">
       <div class="catalogs-grid">
         <!-- Categorías -->
         <div class="catalog-card">
@@ -195,9 +195,9 @@
     </div>
 
     <!-- Pestaña Usuarios -->
-    <div class="admin-tab-pane" id="tab-admin-usuarios">
+    <div class="admin-tab-pane" id="tab-admin-usuarios" role="tabpanel">
       <div class="table-responsive">
-        <table class="admin-table">
+        <table class="admin-table stack">
           <thead>
             <tr>
               <th>Nombre</th>
@@ -214,7 +214,7 @@
     </div>
 
     <!-- Pestaña Problemas Reportados -->
-    <div class="admin-tab-pane" id="tab-admin-problemas">
+    <div class="admin-tab-pane" id="tab-admin-problemas" role="tabpanel">
       <div class="reports-center">
         <div class="report-summary" id="report-summary"></div>
         <div id="admin-problems-container">
@@ -224,7 +224,7 @@
     </div>
 
     <!-- Pestaña Encuestas -->
-    <div class="admin-tab-pane" id="tab-admin-encuestas">
+    <div class="admin-tab-pane" id="tab-admin-encuestas" role="tabpanel">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <span></span>
         <button onclick="openCreateSurveyModal()" class="btn btn-primary btn-sm">Nueva encuesta</button>
@@ -235,7 +235,7 @@
     </div>
 
     <!-- Pestaña Sugerencias -->
-    <div class="admin-tab-pane" id="tab-admin-sugerencias">
+    <div class="admin-tab-pane" id="tab-admin-sugerencias" role="tabpanel">
       <div id="admin-suggestions-container">
         <!-- Renderizado por admin.js -->
       </div>
@@ -347,7 +347,7 @@
       </div>
       <div class="modal-body">
         <div class="table-responsive">
-          <table class="admin-table">
+          <table class="admin-table stack">
             <thead>
               <tr>
                 <th>Estudiante</th>
@@ -450,11 +450,11 @@
 
   <footer class="footer">
     <div class="container">
-      <p>Portal de Eventos IDETH - Modulo Administrador</p>
+      <p>Portal de Eventos IDETH</p>
     </div>
   </footer>
 
-  <script src="/static/js/utils.js?v=4"></script>
-  <script src="/static/js/admin.js?v=4"></script>
+  <script src="/static/js/utils.js?v=5"></script>
+  <script src="/static/js/admin.js?v=5"></script>
 </body>
 </html>
