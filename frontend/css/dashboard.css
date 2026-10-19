@@ -65,6 +65,8 @@
 }
 
 .tab-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
   padding: 10px 18px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -536,33 +538,32 @@
   --stat-color: var(--primary);
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 20px;
-  border: none;
-  color: #ffffff;
-  background: linear-gradient(135deg, var(--stat-color), color-mix(in srgb, var(--stat-color) 62%, #000));
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--stat-color) 32%, transparent);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--stat-color);
 }
-.stat-card:hover { transform: translateY(-3px); }
 .stat-blue { --stat-color: #275da8; }
 .stat-green { --stat-color: #287a4b; }
-.stat-orange { --stat-color: #d9663f; }
+.stat-orange { --stat-color: #c4552d; }
 .stat-red { --stat-color: #bd443b; }
 .stat-purple { --stat-color: #6b4fb5; }
-.stat-teal { --stat-color: #1f8a91; }
+.stat-teal { --stat-color: #1f7a80; }
 .stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.2);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--stat-color) 12%, #ffffff);
+  color: var(--stat-color);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.stat-card .stat-info-number { color: #ffffff; font-size: 2rem; line-height: 1; }
-.stat-card .stat-info-label { color: rgba(255, 255, 255, 0.88); margin-top: 4px; }
+.stat-icon svg { width: 22px; height: 22px; }
+.stat-card .stat-info-number { font-size: 1.6rem; line-height: 1; }
+.stat-card .stat-info-label { margin-top: 3px; }
 
 /* ---------- Panel admin: avisos centrados ---------- */
 .attention-panel {
@@ -661,5 +662,44 @@
 }
 
 @media (max-width: 480px) {
-  .stats-grid { grid-template-columns: 1fr; }
+  .stats-grid { gap: 10px; }
+  .stat-card { padding: 10px 12px; gap: 8px; }
+  .stat-icon { width: 34px; height: 34px; }
+  .stat-card .stat-info-number { font-size: 1.3rem; }
+}
+
+/* Tablas del admin como tarjetas en pantallas pequenas */
+@media (max-width: 700px) {
+  .table-responsive { background: transparent; border: none; }
+  .admin-table.stack thead { display: none; }
+  .admin-table.stack, .admin-table.stack tbody, .admin-table.stack tr, .admin-table.stack td { display: block; width: 100%; }
+  .admin-table.stack tr {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    padding: 6px 0;
+  }
+  .admin-table.stack td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    border-bottom: none;
+    padding: 8px 14px;
+    text-align: right;
+  }
+  .admin-table.stack td::before {
+    content: attr(data-label);
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-align: left;
+    flex-shrink: 0;
+  }
+  .admin-table.stack td[data-label="ID"] { display: none; }
+  .admin-table.stack td[data-label="Título"] { text-align: left; }
+  .admin-table.stack td[data-label="Título"] small { display: none; }
+  .pagination { justify-content: center; }
 }

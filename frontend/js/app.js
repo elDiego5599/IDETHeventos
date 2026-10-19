@@ -218,10 +218,10 @@ function renderEvents(events) {
       ? `<div class="event-card-img-wrap">
            <img src="${photoUrl}" alt="${e.titulo}" class="event-card-img" onerror="this.src='/static/img/cancha_futbol_ideth.jpeg'">
          </div>`
-      : '';
+      : eventBannerHtml(e.categoria_nombre);
 
     const mottoHtml = e.frase_motivacional
-      ? `<div class="event-motto">"${e.frase_motivacional}"</div>`
+      ? `<div class="event-motto">“${cleanQuote(e.frase_motivacional)}”</div>`
       : '';
 
     return `
@@ -237,7 +237,7 @@ function renderEvents(events) {
         <div class="event-card-body">
           <h3 class="event-card-title">${e.titulo}</h3>
           <div class="event-meta">
-            <div><strong>Fecha:</strong> ${e.fecha}</div>
+            <div><strong>Fecha:</strong> ${formatDate(e.fecha)}</div>
           </div>
           <div class="event-card-extra">
             ${mottoHtml}
@@ -248,7 +248,7 @@ function renderEvents(events) {
         </div>
         <div class="event-card-footer">
           <span class="event-enrollment-count">
-            ${e.total_inscritos || 0} inscritos
+            ${e.total_inscritos ? `${e.total_inscritos} inscritos` : ''}
           </span>
           <button onclick="openPublicEventDetail(${e.id})" class="btn btn-outline btn-sm">Ver detalle</button>
         </div>
@@ -294,7 +294,7 @@ async function openPublicEventDetail(id) {
       : '';
 
     const mottoHtml = e.frase_motivacional
-      ? `<div class="event-motto event-motto-centered">"${e.frase_motivacional}"</div>`
+      ? `<div class="event-motto event-motto-centered">“${cleanQuote(e.frase_motivacional)}”</div>`
       : '';
 
     const summaryHtml = (e.es_pasado || e.estado === 'pasado') && e.resumen_pasado
@@ -313,7 +313,7 @@ async function openPublicEventDetail(id) {
       <p class="modal-desc">${e.descripcion || ''}</p>
       <div class="event-meta modal-event-meta">
         <div><strong>Lugar:</strong> ${e.ubicacion_nombre || 'Cancha Principal'}</div>
-        <div><strong>Fecha:</strong> ${e.fecha}</div>
+        <div><strong>Fecha:</strong> ${formatDate(e.fecha)}</div>
         <div><strong>Inscritos:</strong> ${e.total_inscritos || 0}</div>
       </div>
     `;
