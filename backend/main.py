@@ -403,7 +403,7 @@ def add_comment():
             return error("El evento no existe", 404)
         if datetime.now() < event["fecha"] + timedelta(days=1):
             return error("Solo puedes comentar un evento despues de que pase.")
-        cursor.execute("INSERT INTO comentarios (usuario_id, evento_id, texto) VALUES (%s, %s, %s) RETURNING id, fecha", (current_user()["id"], data["evento_id"], data["texto"]))
+        cursor.execute("INSERT INTO comentarios (usuario_id, evento_id, texto, fecha) VALUES (%s, %s, %s, %s) RETURNING id, fecha", (current_user()["id"], data["evento_id"], data["texto"], datetime.now()))
         comment = cursor.fetchone()
     return jsonify({"mensaje": "Comentario publicado.", "comentario": {"id": comment["id"], "texto": data["texto"], "fecha": format_date(comment["fecha"]), "autor_nombre": current_user()["nombre"], "autor_rol": current_user()["rol"]}})
 
@@ -415,7 +415,7 @@ def create_suggestion():
     if response:
         return response
     with get_db() as conn:
-        conn.cursor().execute("INSERT INTO sugerencias (usuario_id, texto) VALUES (%s, %s)", (current_user()["id"], data["texto"]))
+        conn.cursor().execute("INSERT INTO sugerencias (usuario_id, texto, fecha) VALUES (%s, %s, %s)", (current_user()["id"], data["texto"], datetime.now()))
     return jsonify({"mensaje": "Sugerencia enviada."})
 
 
@@ -511,7 +511,7 @@ def create_report():
         return response
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO reportes_problemas (usuario_id, evento_id, tipo_problema, descripcion) VALUES (%s, %s, %s, %s) RETURNING id", (current_user()["id"], data["evento_id"], data["tipo_problema"], data["descripcion"]))
+        cursor.execute("INSERT INTO reportes_problemas (usuario_id, evento_id, tipo_problema, descripcion, fecha) VALUES (%s, %s, %s, %s, %s) RETURNING id", (current_user()["id"], data["evento_id"], data["tipo_problema"], data["descripcion"], datetime.now()))
         report_id = cursor.fetchone()["id"]
     return jsonify({"mensaje": "Inconveniente reportado correctamente. La coordinacion revisara el caso.", "id": report_id})
 
